@@ -1,0 +1,282 @@
+/*		 
+ * Copyright (C) 2002-2013 Sebastiano Vigna 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. 
+ */
+
+
+package PACKAGE;
+
+import java.util.AbstractCollection;
+import java.util.Collection;
+import java.util.Iterator;
+
+/** An abstract class providing basic methods for collections implementing a type-specific interface.
+ *
+ * <P>In particular, this class provide {@link #iterator()}, <code>add()</code>, {@link #remove(Object)} and
+ * {@link #contains(Object)} methods that just call the type-specific counterpart. 
+ */
+
+public abstract class ABSTRACT_COLLECTION KEY_GENERIC extends AbstractCollection<KEY_GENERIC_CLASS> implements COLLECTION KEY_GENERIC {
+
+	protected ABSTRACT_COLLECTION() {}
+
+#if #keys(primitive)
+
+	public KEY_TYPE[] toArray( KEY_TYPE a[] ) {
+		return TO_KEY_ARRAY( a );
+	}
+
+	public KEY_TYPE[] TO_KEY_ARRAY() {
+		return TO_KEY_ARRAY( null );
+	}
+
+	public KEY_TYPE[] TO_KEY_ARRAY( KEY_TYPE a[] ) {
+		if ( a == null || a.length < size() ) a = new KEY_TYPE[ size() ];
+		ITERATORS.unwrap( iterator(), a );
+		return a;
+	}
+
+	/** Adds all elements of the given type-specific collection to this collection.
+	 *
+	 * @param c a type-specific collection.
+	 * @return <code>true</code> if this collection changed as a result of the call.
+	 */
+
+	public boolean addAll( COLLECTION c ) {
+		boolean retVal = false;
+		final KEY_ITERATOR i = c.iterator();
+		int n = c.size();
+
+		while( n-- != 0 ) if ( add( i.NEXT_KEY() ) ) retVal = true;
+		return retVal;
+	}
+
+	/** Checks whether this collection contains all elements from the given type-specific collection.
+	 *
+	 * @param c a type-specific collection.
+	 * @return <code>true</code> if this collection contains all elements of the argument.
+	 */
+
+	public boolean containsAll( COLLECTION c ) {
+		final KEY_ITERATOR i = c.iterator();
+		int n = c.size();
+
+		while( n-- != 0 ) if ( ! contains( i.NEXT_KEY() ) ) return false;
+
+		return true;
+	}
+
+	/** Retains in this collection only elements from the given type-specific collection.
+	 *
+	 * @param c a type-specific collection.
+	 * @return <code>true</code> if this collection changed as a result of the call.
+	 */
+
+	public boolean retainAll( COLLECTION c ) {
+		boolean retVal = false;
+		int n = size();
+
+		final KEY_ITERATOR i = iterator();
+
+		while( n-- != 0 ) {
+			if ( ! c.contains( i.NEXT_KEY() ) ) {
+				i.remove();
+				retVal = true;
+			}
+		}
+
+		return retVal;
+	}
+
+	/** Remove from this collection all elements in the given type-specific collection.
+	 *
+	 * @param c a type-specific collection.
+	 * @return <code>true</code> if this collection changed as a result of the call.
+	 */
+
+	public boolean removeAll( COLLECTION c ) {
+		boolean retVal = false;
+		int n = c.size();
+
+		final KEY_ITERATOR i = c.iterator();
+
+		while( n-- != 0 ) if ( rem( i.NEXT_KEY() ) ) retVal = true;
+
+		return retVal;
+	}
+
+#endif
+
+	public Object[] toArray() {
+		final Object[] a = new Object[ size() ];
+		it.unimi.dsi.fastutil.objects.ObjectIterators.unwrap( iterator(), a );
+		return a;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T[] toArray( T[] a ) {
+		if ( a.length < size() ) a = (T[])java.lang.reflect.Array.newInstance( a.getClass().getComponentType(), size() );
+		it.unimi.dsi.fastutil.objects.ObjectIterators.unwrap( iterator(), a );
+		return a;
+	}
+
+	/** Adds all elements of the given collection to this collection.
+	 *
+	 * @param c a collection.
+	 * @return <code>true</code> if this collection changed as a result of the call.
+	 */
+
+	public boolean addAll( Collection<? extends KEY_GENERIC_CLASS> c ) {
+		boolean retVal = false;
+		final Iterator<? extends KEY_GENERIC_CLASS> i = c.iterator();
+		int n = c.size();
+
+		while( n-- != 0 ) if ( add( i.next() ) ) retVal = true;
+		return retVal;
+	}
+
+	public boolean add( KEY_GENERIC_TYPE k ) {
+		throw new UnsupportedOperationException();
+	}
+	 
+	/** Delegates to the new covariantly stronger generic method. */
+	
+	@Deprecated
+	public KEY_ITERATOR KEY_GENERIC KEY_ITERATOR_METHOD() {
+		return iterator();
+	}
+
+	public abstract KEY_ITERATOR KEY_GENERIC iterator();
+
+#if #keys(primitive)
+
+	/** Delegates to the type-specific <code>rem()</code> method. */
+	public boolean remove( Object ok ) {
+		return rem( KEY_OBJ2TYPE( ok ) );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public boolean add( final KEY_CLASS o ) {
+		return add( o.KEY_VALUE() );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public boolean rem( final Object o ) {
+		return rem( KEY_OBJ2TYPE(o) );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public boolean contains( final Object o ) {
+		return contains( KEY_OBJ2TYPE(o) );
+	}
+
+	public boolean contains( final KEY_TYPE k ) {
+		final KEY_ITERATOR iterator = iterator();
+		while ( iterator.hasNext() ) if ( k == iterator.NEXT_KEY() ) return true;
+        return false;
+    }
+
+	public boolean rem( final KEY_TYPE k ) {
+		final KEY_ITERATOR iterator = iterator();
+		while ( iterator.hasNext() ) 
+			if ( k == iterator.NEXT_KEY() ) {
+				iterator.remove();
+				return true;
+			}
+        return false;
+    }
+
+#endif
+
+	/** Checks whether this collection contains all elements from the given collection.
+	 *
+	 * @param c a collection.
+	 * @return <code>true</code> if this collection contains all elements of the argument.
+	 */
+
+	public boolean containsAll( Collection<?> c ) {
+		int n = c.size();
+
+		final Iterator<?> i = c.iterator();
+		while( n-- != 0 ) if ( ! contains( i.next() ) ) return false;
+
+		return true;
+	}
+
+
+	/** Retains in this collection only elements from the given collection.
+	 *
+	 * @param c a collection.
+	 * @return <code>true</code> if this collection changed as a result of the call.
+	 */
+
+	public boolean retainAll( Collection<?> c ) {
+		boolean retVal = false;
+		int n = size();
+
+		final Iterator<?> i = iterator();
+		while( n-- != 0 ) {
+			if ( ! c.contains( i.next() ) ) {
+				i.remove(); 
+				retVal = true;
+			}
+		}
+
+		return retVal;
+	}
+
+	/** Remove from this collection all elements in the given collection.
+	 * If the collection is an instance of this class, it uses faster iterators.
+	 *
+	 * @param c a collection.
+	 * @return <code>true</code> if this collection changed as a result of the call.
+	 */
+
+	public boolean removeAll( Collection<?> c ) {
+		boolean retVal = false;
+		int n = c.size();
+
+		final Iterator<?> i = c.iterator();
+		while( n-- != 0 ) if ( remove( i.next() ) ) retVal = true;
+
+		return retVal;
+	}
+
+	public boolean isEmpty() {
+		return size() == 0;
+	}
+
+	public String toString() {
+		final StringBuilder s = new StringBuilder();
+		final KEY_ITERATOR KEY_GENERIC i = iterator();
+		int n = size();
+		KEY_TYPE k;
+		boolean first = true;
+
+		s.append("{");
+
+		while(n-- != 0) {
+			if (first) first = false;
+			else s.append(", ");
+			k = i.NEXT_KEY();
+#if #keys(reference)
+			if (this == k) s.append("(this collection)"); else
+#endif
+				s.append(String.valueOf(k));
+		}
+
+		s.append("}");
+		return s.toString();
+	}
+}

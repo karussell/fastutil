@@ -1,0 +1,305 @@
+/*		 
+ * Copyright (C) 2002-2013 Sebastiano Vigna 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. 
+ */
+
+
+package PACKAGE;
+
+import VALUE_PACKAGE.VALUE_COLLECTION;
+import VALUE_PACKAGE.VALUE_ABSTRACT_COLLECTION;
+import VALUE_PACKAGE.VALUE_ITERATOR;
+import VALUE_PACKAGE.VALUE_ABSTRACT_ITERATOR;
+
+import it.unimi.dsi.fastutil.objects.ObjectSet;
+
+#if #keys(primitive) && #values(primitive)
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
+#endif
+
+import java.util.Iterator;
+import java.util.Map;
+
+/** An abstract class providing basic methods for maps implementing a type-specific interface.
+ *
+ * <P>Optional operations just throw an {@link
+ * UnsupportedOperationException}. Generic versions of accessors delegate to
+ * the corresponding type-specific counterparts following the interface rules
+ * (they take care of returning <code>null</code> on a missing key).
+ *
+ * <P>As a further help, this class provides a {@link BasicEntry BasicEntry} inner class
+ * that implements a type-specific version of {@link java.util.Map.Entry}; it
+ * is particularly useful for those classes that do not implement their own
+ * entries (e.g., most immutable maps).
+ */
+
+public abstract class ABSTRACT_MAP KEY_VALUE_GENERIC extends ABSTRACT_FUNCTION KEY_VALUE_GENERIC implements MAP KEY_VALUE_GENERIC, java.io.Serializable {
+
+	private static final long serialVersionUID = -4940583368468432370L;
+	
+	protected ABSTRACT_MAP() {}
+
+#if #values(primitive)
+	public boolean containsValue( Object ov ) {
+		return containsValue( VALUE_OBJ2TYPE( ov ) );
+	}
+#endif
+
+	/** Checks whether the given value is contained in {@link #values()}. */
+	public boolean containsValue( VALUE_TYPE v ) {
+		return values().contains( v );
+	}
+
+	/** Checks whether the given value is contained in {@link #keySet()}. */
+	public boolean containsKey( KEY_TYPE k ) {
+		return keySet().contains( k );
+	}
+
+	/** Puts all pairs in the given map.
+	 * If the map implements the interface of this map,
+	 * it uses the faster iterators.
+	 *
+	 * @param m a map.
+	 */
+	@SuppressWarnings("unchecked")
+	public void putAll(Map<? extends KEY_GENERIC_CLASS,? extends VALUE_GENERIC_CLASS> m) {
+		int n = m.size();
+		final Iterator<? extends Map.Entry<? extends KEY_GENERIC_CLASS,? extends VALUE_GENERIC_CLASS>> i = m.entrySet().iterator();
+
+		if (m instanceof MAP) {
+			MAP.Entry KEY_VALUE_EXTENDS_GENERIC e;
+			while(n-- != 0) {
+				e = (MAP.Entry KEY_VALUE_EXTENDS_GENERIC)i.next();
+				put(e.ENTRY_GET_KEY(), e.ENTRY_GET_VALUE());
+			}
+		}
+		else {
+			Map.Entry<? extends KEY_GENERIC_CLASS,? extends VALUE_GENERIC_CLASS> e;
+			while(n-- != 0) {
+				e = i.next();
+				put(e.getKey(), e.getValue());
+			}
+		} 
+	}
+
+	public boolean isEmpty() {
+		return size() == 0;
+	}
+
+	/** This class provides a basic but complete type-specific entry class for all those maps implementations
+	 * that do not have entries on their own (e.g., most immutable maps). 
+	 *
+	 * <P>This class does not implement {@link java.util.Map.Entry#setValue(Object) setValue()}, as the modification
+	 * would not be reflected in the base map.
+	 */
+
+	public static class BasicEntry KEY_VALUE_GENERIC implements MAP.Entry KEY_VALUE_GENERIC {
+		protected KEY_GENERIC_TYPE key;
+		protected VALUE_GENERIC_TYPE value;
+
+		public BasicEntry( final KEY_GENERIC_CLASS key, final VALUE_GENERIC_CLASS value ) {
+			this.key = KEY_CLASS2TYPE(key);
+			this.value = VALUE_CLASS2TYPE(value);
+		}
+
+#if #keys(primitive) || #values(primitive)
+		  
+		public BasicEntry( final KEY_GENERIC_TYPE key, final VALUE_GENERIC_TYPE value ) {
+			this.key = key;
+			this.value = value;
+		}
+		  
+#endif
+
+		public KEY_GENERIC_CLASS getKey() {
+			return KEY2OBJ(key);
+		}
+		  
+#if #keys(primitive)
+		public KEY_TYPE ENTRY_GET_KEY() {
+			return key;
+		}
+#endif
+
+		public VALUE_GENERIC_CLASS getValue() {
+			return VALUE2OBJ(value);
+		}
+		  
+#if #values(primitive)
+		public VALUE_TYPE ENTRY_GET_VALUE() {
+			return value;
+		}
+#endif
+
+		public VALUE_GENERIC_TYPE setValue( final VALUE_GENERIC_TYPE value ) {
+			throw new UnsupportedOperationException();
+		}
+		  
+#if #values(primitive)
+		  
+		public VALUE_GENERIC_CLASS setValue( final VALUE_GENERIC_CLASS value ) {
+			return VALUE_CLASS.valueOf(setValue(value.VALUE_VALUE()));
+		}
+
+#endif
+
+		public boolean equals( final Object o ) {
+			if (!(o instanceof Map.Entry)) return false;
+			Map.Entry<?,?> e = (Map.Entry<?,?>)o;
+				
+			return KEY_EQUALS( key, KEY_OBJ2TYPE( e.getKey() ) ) && VALUE_EQUALS( value, VALUE_OBJ2TYPE( e.getValue() ) );
+		}
+		  
+		public int hashCode() {
+			return KEY2JAVAHASH(key) ^ VALUE2JAVAHASH(value);
+		}
+		  
+		  
+		public String toString() {
+			return key + "->" + value;
+		}
+	}
+
+
+	/** Returns a type-specific-set view of the keys of this map.
+	 *
+	 * <P>The view is backed by the set returned by {@link #entrySet()}. Note that
+	 * <em>no attempt is made at caching the result of this method</em>, as this would
+	 * require adding some attributes that lightweight implementations would
+	 * not need. Subclasses may easily override this policy by calling
+	 * this method and caching the result, but implementors are encouraged to
+	 * write more efficient ad-hoc implementations.
+	 *
+	 * @return a set view of the keys of this map; it may be safely cast to a type-specific interface.
+	 */
+
+
+	public SET KEY_GENERIC keySet() {
+		return new ABSTRACT_SET KEY_GENERIC() {
+
+				public boolean contains( final KEY_TYPE k ) { return containsKey( k ); }
+
+				public int size() { return ABSTRACT_MAP.this.size(); }
+				public void clear() { ABSTRACT_MAP.this.clear(); }
+
+				public KEY_ITERATOR KEY_GENERIC iterator() {
+					return new KEY_ABSTRACT_ITERATOR KEY_GENERIC() {
+							final ObjectIterator<Map.Entry<KEY_GENERIC_CLASS,VALUE_GENERIC_CLASS>> i = entrySet().iterator();
+
+							public KEY_GENERIC_TYPE NEXT_KEY() { return ((MAP.Entry KEY_VALUE_GENERIC)i.next()).ENTRY_GET_KEY(); };
+
+							public boolean hasNext() { return i.hasNext(); }
+						};
+				}
+			};
+	}
+
+	/** Returns a type-specific-set view of the values of this map.
+	 *
+	 * <P>The view is backed by the set returned by {@link #entrySet()}. Note that
+	 * <em>no attempt is made at caching the result of this method</em>, as this would
+	 * require adding some attributes that lightweight implementations would
+	 * not need. Subclasses may easily override this policy by calling
+	 * this method and caching the result, but implementors are encouraged to
+	 * write more efficient ad-hoc implementations.
+	 *
+	 * @return a set view of the values of this map; it may be safely cast to a type-specific interface.
+	 */
+
+
+	public VALUE_COLLECTION VALUE_GENERIC values() {
+		return new VALUE_ABSTRACT_COLLECTION VALUE_GENERIC() {
+
+				public boolean contains( final VALUE_TYPE k ) { return containsValue( k ); }
+
+				public int size() { return ABSTRACT_MAP.this.size(); }
+				public void clear() { ABSTRACT_MAP.this.clear(); }
+
+				public VALUE_ITERATOR VALUE_GENERIC iterator() {
+					return new VALUE_ABSTRACT_ITERATOR VALUE_GENERIC() {
+							final ObjectIterator<Map.Entry<KEY_GENERIC_CLASS,VALUE_GENERIC_CLASS>> i = entrySet().iterator();
+
+							public VALUE_GENERIC_TYPE NEXT_VALUE() { return ((MAP.Entry KEY_VALUE_GENERIC)i.next()).ENTRY_GET_VALUE(); };
+
+							public boolean hasNext() { return i.hasNext(); }
+						};
+				}
+			};
+	}
+
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public ObjectSet<Map.Entry<KEY_GENERIC_CLASS, VALUE_GENERIC_CLASS>> entrySet() {
+		return (ObjectSet)ENTRYSET();
+	}
+
+
+
+	/** Returns a hash code for this map.
+	 *
+	 * The hash code of a map is computed by summing the hash codes of its entries.
+	 *
+	 * @return a hash code for this map.
+	 */
+
+	public int hashCode() {
+		int h = 0, n = size();
+		final ObjectIterator<? extends Map.Entry<KEY_GENERIC_CLASS,VALUE_GENERIC_CLASS>> i = entrySet().iterator();
+
+		while( n-- != 0 ) h += i.next().hashCode();
+		return h;
+	}
+
+	public boolean equals(Object o) {
+		if ( o == this ) return true;
+		if ( ! ( o instanceof Map ) ) return false;
+
+		Map<?,?> m = (Map<?,?>)o; 
+		if ( m.size() != size() ) return false; 
+		return entrySet().containsAll( m.entrySet() ); 
+	}
+
+
+	public String toString() {
+		final StringBuilder s = new StringBuilder();
+		final ObjectIterator<? extends Map.Entry<KEY_GENERIC_CLASS,VALUE_GENERIC_CLASS>> i = entrySet().iterator();
+		int n = size();
+		MAP.Entry KEY_VALUE_GENERIC e;
+		boolean first = true;
+
+		s.append("{");
+
+		while(n-- != 0) {
+			if (first) first = false;
+			else s.append(", ");
+
+			e = (MAP.Entry KEY_VALUE_GENERIC)i.next();
+
+#if #keys(reference)
+			if (this == e.getKey()) s.append("(this map)"); else
+#endif
+				s.append(String.valueOf(e.ENTRY_GET_KEY()));
+			s.append("=>");
+#if #values(reference)
+			if (this == e.getValue()) s.append("(this map)"); else
+#endif
+				s.append(String.valueOf(e.ENTRY_GET_VALUE()));
+		}
+
+		s.append("}");
+		return s.toString();
+	}
+	 
+
+}

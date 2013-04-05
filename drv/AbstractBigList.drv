@@ -1,0 +1,651 @@
+/*		 
+ * Copyright (C) 2010-2013 Sebastiano Vigna 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. 
+ */
+
+
+package PACKAGE;
+
+#if #keys(reference)
+import it.unimi.dsi.fastutil.Stack;
+#endif
+
+import java.util.Iterator;
+import java.util.Collection;
+import java.util.NoSuchElementException;
+
+import it.unimi.dsi.fastutil.BigList;
+import it.unimi.dsi.fastutil.BigListIterator;
+
+/**  An abstract class providing basic methods for big lists implementing a type-specific big list interface. */
+
+public abstract class ABSTRACT_BIG_LIST KEY_GENERIC extends ABSTRACT_COLLECTION KEY_GENERIC implements BIG_LIST KEY_GENERIC, STACK KEY_GENERIC {
+
+	protected ABSTRACT_BIG_LIST() {}
+	
+	/** Ensures that the given index is nonnegative and not greater than this big-list size.
+	 *
+	 * @param index an index.
+	 * @throws IndexOutOfBoundsException if the given index is negative or greater than this big-list size.
+	 */
+	protected void ensureIndex( final long index ) {
+		if ( index < 0 )  throw new IndexOutOfBoundsException( "Index (" + index + ") is negative" );
+		if ( index > size64() ) throw new IndexOutOfBoundsException( "Index (" + index + ") is greater than list size (" + ( size64() ) + ")" );
+	}
+	
+	/** Ensures that the given index is nonnegative and smaller than this big-list size.
+	 *
+	 * @param index an index.
+	 * @throws IndexOutOfBoundsException if the given index is negative or not smaller than this big-list size.
+	 */
+	protected void ensureRestrictedIndex( final long index ) {
+		if ( index < 0 )  throw new IndexOutOfBoundsException( "Index (" + index + ") is negative" );
+		if ( index >= size64() ) throw new IndexOutOfBoundsException( "Index (" + index + ") is greater than or equal to list size (" + ( size64() ) + ")" );
+	}
+
+	public void add( final long index, final KEY_GENERIC_TYPE k ) {
+		throw new UnsupportedOperationException();
+	}
+
+	public boolean add( final KEY_GENERIC_TYPE k ) {
+		add( size64(), k );
+		return true;
+	}
+
+	public KEY_GENERIC_TYPE REMOVE_KEY( long i ) {
+		throw new UnsupportedOperationException();
+	}
+
+	public KEY_GENERIC_TYPE REMOVE_KEY( int i ) {
+		return REMOVE_KEY( (long)i );
+	}
+
+	public KEY_GENERIC_TYPE set( final long index, final KEY_GENERIC_TYPE k ) {
+		throw new UnsupportedOperationException();
+	}
+
+	public KEY_GENERIC_TYPE set( final int index, final KEY_GENERIC_TYPE k ) {
+		return set( (long)index, k );
+	}
+
+	public boolean addAll( long index, final Collection<? extends KEY_GENERIC_CLASS> c ) {
+		ensureIndex( index );
+		int n = c.size();
+		if ( n == 0 ) return false;
+		Iterator<? extends KEY_GENERIC_CLASS> i = c.iterator();
+		while( n-- != 0 ) add( index++, i.next() );
+		return true;
+	}
+
+	public boolean addAll( int index, final Collection<? extends KEY_GENERIC_CLASS> c ) {
+		return addAll( (long)index, c );
+	}
+	
+	/** Delegates to a more generic method. */
+	public boolean addAll( final Collection<? extends KEY_GENERIC_CLASS> c ) {
+		return addAll( size64(), c );
+	}
+
+	public KEY_BIG_LIST_ITERATOR KEY_GENERIC iterator() {
+		return listIterator();
+	}
+
+	public KEY_BIG_LIST_ITERATOR KEY_GENERIC listIterator() {
+		return listIterator( 0L );
+	}
+
+	public KEY_BIG_LIST_ITERATOR KEY_GENERIC listIterator( final long index ) {
+		return new KEY_ABSTRACT_BIG_LIST_ITERATOR KEY_GENERIC() {
+				long pos = index, last = -1;
+							
+				public boolean hasNext() { return pos < ABSTRACT_BIG_LIST.this.size64(); }
+				public boolean hasPrevious() { return pos > 0; }
+				public KEY_GENERIC_TYPE NEXT_KEY() { if ( ! hasNext() ) throw new NoSuchElementException(); return ABSTRACT_BIG_LIST.this.GET_KEY( last = pos++ ); }
+				public KEY_GENERIC_TYPE PREV_KEY() { if ( ! hasPrevious() ) throw new NoSuchElementException(); return ABSTRACT_BIG_LIST.this.GET_KEY( last = --pos ); }
+				public long nextIndex() { return pos; }
+				public long previousIndex() { return pos - 1; }
+				public void add( KEY_GENERIC_TYPE k ) { 
+					if ( last == -1 ) throw new IllegalStateException();
+					ABSTRACT_BIG_LIST.this.add( pos++, k ); 
+					last = -1;
+				}
+				public void set( KEY_GENERIC_TYPE k ) { 
+					if ( last == -1 ) throw new IllegalStateException();
+					ABSTRACT_BIG_LIST.this.set( last, k ); 
+				}
+				public void remove() { 
+					if ( last == -1 ) throw new IllegalStateException();
+					ABSTRACT_BIG_LIST.this.REMOVE_KEY( last );
+					/* If the last operation was a next(), we are removing an element *before* us, and we must decrease pos correspondingly. */
+					if ( last < pos ) pos--;
+					last = -1;
+				}
+			};
+	}
+
+
+	public KEY_BIG_LIST_ITERATOR KEY_GENERIC listIterator( final int index ) {
+		return listIterator( (long)index );
+	}
+
+
+	public boolean contains( final KEY_TYPE k ) {
+		return indexOf( k ) >= 0;
+	}
+
+	public long indexOf( final KEY_TYPE k ) {
+		final KEY_BIG_LIST_ITERATOR KEY_GENERIC i = listIterator();
+		KEY_GENERIC_TYPE e;
+		while( i.hasNext() ) {
+			e = i.NEXT_KEY();
+			if ( KEY_EQUALS( k, e ) ) return i.previousIndex(); 
+		}
+		return -1;
+	}
+
+	public long lastIndexOf( final KEY_TYPE k ) {
+		KEY_BIG_LIST_ITERATOR KEY_GENERIC i = listIterator( size64() );
+		KEY_GENERIC_TYPE e;
+		while( i.hasPrevious() ) {
+			e = i.PREV_KEY();
+			if ( KEY_EQUALS( k, e ) ) return i.nextIndex(); 
+		}
+		return -1;
+	}
+
+	public void size( final long size ) {
+		long i = size64();
+		if ( size > i ) while( i++ < size ) add( KEY_NULL );
+		else while( i-- != size ) remove( i );
+	}
+	
+	public void size( final int size ) {
+		size( (long)size );
+	}
+
+	public BIG_LIST KEY_GENERIC subList( final long from, final long to ) {
+		ensureIndex( from );
+		ensureIndex( to );
+		if ( from > to ) throw new IndexOutOfBoundsException( "Start index (" + from + ") is greater than end index (" + to + ")" );
+		
+		return new SUBLIST KEY_GENERIC( this, from, to );
+	}
+	
+	/** Removes elements of this type-specific big list one-by-one. 
+	 *
+	 * <P>This is a trivial iterator-based implementation. It is expected that
+	 * implementations will override this method with a more optimized version.
+	 *
+	 * @param from the start index (inclusive).
+	 * @param to the end index (exclusive).
+	 */
+	
+	public void removeElements( final long from, final long to ) {
+		ensureIndex( to );
+		KEY_BIG_LIST_ITERATOR KEY_GENERIC i = listIterator( from );
+		long n = to - from;
+		if ( n < 0 ) throw new IllegalArgumentException( "Start index (" + from + ") is greater than end index (" + to + ")" );
+		while( n-- != 0 ) {
+			i.NEXT_KEY();
+			i.remove();
+		}
+	}
+
+	/** Adds elements to this type-specific big list one-by-one. 
+	 *
+	 * <P>This is a trivial iterator-based implementation. It is expected that
+	 * implementations will override this method with a more optimized version.
+	 *
+	 * @param index the index at which to add elements.
+	 * @param a the big array containing the elements.
+	 * @param offset the offset of the first element to add.
+	 * @param length the number of elements to add.
+	 */
+	
+	public void addElements( long index, final KEY_GENERIC_TYPE a[][], long offset, long length ) {
+		ensureIndex( index );
+		BIG_ARRAYS.ensureOffsetLength( a, offset, length );
+		while( length-- != 0 ) add( index++, BIG_ARRAYS.get( a, offset++ ) );
+	}
+
+	public void addElements( final long index, final KEY_GENERIC_TYPE a[][] ) {
+		addElements( index, a, 0, BIG_ARRAYS.length( a ) );
+	}
+
+	/** Copies element of this type-specific big list into the given big array one-by-one.
+	 *
+	 * <P>This is a trivial iterator-based implementation. It is expected that
+	 * implementations will override this method with a more optimized version.
+	 *
+	 * @param from the start index (inclusive).
+	 * @param a the destination big array.
+	 * @param offset the offset into the destination big array where to store the first element copied.
+	 * @param length the number of elements to be copied.
+	 */
+	 
+	public void getElements( final long from, final KEY_TYPE a[][], long offset, long length ) {
+		KEY_BIG_LIST_ITERATOR KEY_GENERIC i = listIterator( from );
+		BIG_ARRAYS.ensureOffsetLength( a, offset, length );
+		if ( from + length > size64() ) throw new IndexOutOfBoundsException( "End index (" + ( from + length ) + ") is greater than list size (" + size64() + ")" );
+		while( length-- != 0 ) BIG_ARRAYS.set( a, offset++, i.NEXT_KEY() );
+	}
+
+	@Deprecated
+	public int size() {
+		return (int)Math.min( Integer.MAX_VALUE, size64() );
+	}
+
+#if ! #keyclass(Reference)
+	private boolean valEquals( final Object a, final Object b ) {
+		return a == null ? b == null : a.equals( b );
+	}
+#endif
+
+	@SuppressWarnings("unchecked")
+	public boolean equals( final Object o ) {
+		if ( o == this ) return true;
+		if ( ! ( o instanceof BigList ) ) return false;
+		final BigList<?> l = (BigList<?>)o;
+		long s = size64();
+		if ( s != l.size64() ) return false;
+
+		final BigListIterator<?> i1 = listIterator(), i2 = l.listIterator();
+
+#if #keyclass(Reference)
+		while( s-- !=  0 ) if ( i1.next() != i2.next() ) return false;
+#else
+		while( s-- !=  0 ) if ( ! valEquals( i1.next(), i2.next() ) ) return false;
+#endif
+		return true;
+	}
+
+#if ! #keyclass(Reference)
+    /** Compares this big list to another object. If the
+     * argument is a {@link BigList}, this method performs a lexicographical comparison; otherwise,
+     * it throws a <code>ClassCastException</code>.
+     *
+     * @param l a big list.
+     * @return if the argument is a {@link BigList}, a negative integer,
+     * zero, or a positive integer as this list is lexicographically less than, equal
+     * to, or greater than the argument.
+     * @throws ClassCastException if the argument is not a big list.
+     */
+
+	@SuppressWarnings("unchecked")
+	public int compareTo( final BigList<? extends KEY_GENERIC_CLASS> l ) {
+		if ( l == this ) return 0;
+
+		if ( l instanceof BIG_LIST ) {
+			
+			final KEY_BIG_LIST_ITERATOR KEY_GENERIC i1 = listIterator(), i2 = ((BIG_LIST KEY_GENERIC)l).listIterator();
+			int r;
+			KEY_GENERIC_TYPE e1, e2;
+			
+			while( i1.hasNext() && i2.hasNext() ) {
+				e1 = i1.NEXT_KEY();
+				e2 = i2.NEXT_KEY();
+				if ( ( r = KEY_CMP( e1, e2 ) ) != 0 ) return r;
+			}
+			return i2.hasNext() ? -1 : ( i1.hasNext() ? 1 : 0 );
+		}
+		
+		BigListIterator<? extends KEY_GENERIC_CLASS> i1 = listIterator(), i2 = l.listIterator();
+		int r;
+
+		while( i1.hasNext() && i2.hasNext() ) {
+			if ( ( r = ((Comparable<? super KEY_GENERIC_CLASS>)i1.next()).compareTo( i2.next() ) ) != 0 ) return r;
+		}
+		return i2.hasNext() ? -1 : ( i1.hasNext() ? 1 : 0 );
+	}
+#endif
+
+	/** Returns the hash code for this big list, which is identical to {@link java.util.List#hashCode()}.
+	 *
+	 * @return the hash code for this big list.
+	 */
+	public int hashCode() {
+		KEY_ITERATOR KEY_GENERIC i = iterator();
+		int h = 1;
+		long s = size64();
+		while ( s-- != 0 ) {
+			KEY_GENERIC_TYPE k = i.NEXT_KEY(); 
+			h = 31 * h + KEY2JAVAHASH( k );
+		}
+		return h;
+	}
+
+	public void push( KEY_GENERIC_TYPE o ) {
+		add( o ); 
+	}
+
+	public KEY_GENERIC_TYPE POP() {
+		if ( isEmpty() ) throw new NoSuchElementException();
+		return REMOVE_KEY( size64() - 1 );
+	}
+
+	public KEY_GENERIC_TYPE TOP() {
+		if ( isEmpty() ) throw new NoSuchElementException();
+		return GET_KEY( size64() - 1 );
+	}
+
+	public KEY_GENERIC_TYPE PEEK( int i ) {
+		return GET_KEY( size64() - 1 - i );
+	}
+
+#if #keys(primitive)
+
+	public KEY_TYPE GET_KEY( final int index ) {
+		return GET_KEY( (long)index );
+	}
+
+	public boolean rem( KEY_TYPE k ) {
+		long index = indexOf( k );
+		if ( index == -1 ) return false;
+		REMOVE_KEY( index );
+		return true;
+	}
+
+	/** Delegates to a more generic method. */
+	public boolean addAll( final long index, final COLLECTION c ) {
+		return addAll( index, (Collection<? extends KEY_CLASS>)c );
+	}
+
+	/** Delegates to a more generic method. */
+	public boolean addAll( final long index, final BIG_LIST l ) {
+		return addAll( index, (COLLECTION)l );
+	}
+
+	public boolean addAll( final COLLECTION c ) {
+		return addAll( size64(), c );
+	}
+
+	public boolean addAll( final BIG_LIST l ) {
+		return addAll( size64(), l );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public void add( final long index, final KEY_CLASS ok ) {
+		add( index, ok.KEY_VALUE() );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public KEY_CLASS set( final long index, final KEY_CLASS ok ) {
+		return KEY2OBJ( set( index, ok.KEY_VALUE() ) );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public KEY_CLASS get( final long index ) {
+		return KEY2OBJ( GET_KEY( index ) );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public long indexOf( final Object ok ) {
+		return indexOf( KEY_OBJ2TYPE( ok ) );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public long lastIndexOf( final Object ok ) {
+		return lastIndexOf( KEY_OBJ2TYPE( ok ) );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public KEY_CLASS remove( final int index ) {
+		return KEY2OBJ( REMOVE_KEY( index ) );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public KEY_CLASS remove( final long index ) {
+		return KEY2OBJ( REMOVE_KEY( index ) );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public void push( KEY_CLASS o ) {
+		push( o.KEY_VALUE() ); 
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public KEY_CLASS pop() {
+		return KEY_CLASS.valueOf( POP() ); 
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public KEY_CLASS top() {
+		return KEY_CLASS.valueOf( TOP() ); 
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public KEY_CLASS peek( int i ) {
+		return KEY_CLASS.valueOf( PEEK( i ) ); 
+	}
+
+#else
+
+	public KEY_GENERIC_CLASS get( int index ) {
+		return get( (long)index );
+	}
+
+#endif
+
+
+	public String toString() {
+		final StringBuilder s = new StringBuilder();
+		final KEY_ITERATOR KEY_GENERIC i = iterator();
+		long n = size64();
+		KEY_GENERIC_TYPE k;
+		boolean first = true;
+
+		s.append("[");
+
+		while( n-- != 0 ) {
+			if (first) first = false;
+			else s.append(", ");
+			k = i.NEXT_KEY();
+#if #keys(reference)
+			if (this == k) s.append("(this big list)"); else
+#endif
+				s.append( String.valueOf( k ) );
+		}
+
+		s.append("]");
+		return s.toString();
+	}
+
+
+	public static class SUBLIST KEY_GENERIC extends ABSTRACT_BIG_LIST KEY_GENERIC implements java.io.Serializable {
+    	private static final long serialVersionUID = -7046029254386353129L;
+		/** The list this sublist restricts. */
+		protected final BIG_LIST KEY_GENERIC l;
+		/** Initial (inclusive) index of this sublist. */
+		protected final long from;
+		/** Final (exclusive) index of this sublist. */
+		protected long to;
+	
+		private static final boolean ASSERTS = ASSERTS_VALUE;
+	
+		public SUBLIST( final BIG_LIST KEY_GENERIC l, final long from, final long to ) {
+			this.l = l;
+			this.from = from;
+			this.to = to;
+		}
+
+		private void assertRange() {
+			if ( ASSERTS ) {
+				assert from <= l.size64();
+				assert to <= l.size64();
+				assert to >= from;
+			}
+		}
+
+		public boolean add( final KEY_GENERIC_TYPE k ) {
+			l.add( to, k );
+			to++;
+			if ( ASSERTS ) assertRange();
+			return true;
+		}
+
+		public void add( final long index, final KEY_GENERIC_TYPE k ) {
+			ensureIndex( index );
+			l.add( from + index, k );
+			to++;
+			if ( ASSERTS ) assertRange();
+		}
+
+		public boolean addAll( final long index, final Collection<? extends KEY_GENERIC_CLASS> c ) {
+			ensureIndex( index );
+			to += c.size();
+			if ( ASSERTS ) {
+				boolean retVal = l.addAll( from + index, c );
+				assertRange();
+				return retVal;
+			}
+			return l.addAll( from + index, c );
+		}
+
+		public KEY_GENERIC_TYPE GET_KEY( long index ) {
+			ensureRestrictedIndex( index );
+			return l.GET_KEY( from + index );
+		}
+
+		public KEY_GENERIC_TYPE REMOVE_KEY( long index ) {
+			ensureRestrictedIndex( index );
+			to--;
+			return l.REMOVE_KEY( from + index );
+		}
+
+		public KEY_GENERIC_TYPE set( long index, KEY_GENERIC_TYPE k ) {
+			ensureRestrictedIndex( index );
+			return l.set( from + index, k );
+		}
+
+		public void clear() {
+			removeElements( 0, size64() );
+			if ( ASSERTS ) assertRange();
+		}
+
+		public long size64() { 
+			return to - from; 
+		}
+		
+		public void getElements( final long from, final KEY_TYPE[][] a, final long offset, final long length ) {
+			ensureIndex( from );
+			if ( from + length > size64() )  throw new IndexOutOfBoundsException( "End index (" + from + length + ") is greater than list size (" + size64() + ")" );
+			l.getElements( this.from + from, a, offset, length );
+		}
+
+		public void removeElements( final long from, final long to ) {
+			ensureIndex( from );
+			ensureIndex( to );
+			l.removeElements( this.from + from, this.from + to );
+			this.to -= ( to - from );
+			if ( ASSERTS ) assertRange();
+		}
+
+		public void addElements( final long index, final KEY_GENERIC_TYPE a[][], long offset, long length ) {
+			ensureIndex( index );
+			l.addElements( this.from + index, a, offset, length );
+			this.to += length;
+			if ( ASSERTS ) assertRange();
+		}
+
+		public KEY_BIG_LIST_ITERATOR KEY_GENERIC listIterator( final long index ) {
+			ensureIndex( index );
+
+			return new KEY_ABSTRACT_BIG_LIST_ITERATOR KEY_GENERIC() {
+					long pos = index, last = -1;
+							
+					public boolean hasNext() { return pos < size64(); }
+					public boolean hasPrevious() { return pos > 0; }
+					public KEY_GENERIC_TYPE NEXT_KEY() { if ( ! hasNext() ) throw new NoSuchElementException(); return l.GET_KEY( from + ( last = pos++ ) ); }
+					public KEY_GENERIC_TYPE PREV_KEY() { if ( ! hasPrevious() ) throw new NoSuchElementException(); return l.GET_KEY( from + ( last = --pos ) ); }
+					public long nextIndex() { return pos; }
+					public long previousIndex() { return pos - 1; }
+					public void add( KEY_GENERIC_TYPE k ) { 
+						if ( last == -1 ) throw new IllegalStateException();
+						SUBLIST.this.add( pos++, k ); 
+						last = -1;
+						if ( ASSERTS ) assertRange();
+					}
+					public void set( KEY_GENERIC_TYPE k ) { 
+						if ( last == -1 ) throw new IllegalStateException();
+						SUBLIST.this.set( last, k ); 
+					}
+					public void remove() { 
+						if ( last == -1 ) throw new IllegalStateException();
+						SUBLIST.this.REMOVE_KEY( last );
+						/* If the last operation was a next(), we are removing an element *before* us, and we must decrease pos correspondingly. */
+						if ( last < pos ) pos--;
+						last = -1;
+						if ( ASSERTS ) assertRange();
+					}
+				};
+		}
+
+		public BIG_LIST KEY_GENERIC subList( final long from, final long to ) {
+			ensureIndex( from );
+			ensureIndex( to );
+			if ( from > to ) throw new IllegalArgumentException( "Start index (" + from + ") is greater than end index (" + to + ")" );
+			
+			return new SUBLIST KEY_GENERIC( this, from, to );
+		}
+
+#if #keys(primitive)
+
+		public boolean rem( KEY_TYPE k ) {
+			long index = indexOf( k );
+			if ( index == -1 ) return false;
+			to--;
+			l.REMOVE_KEY( from + index );
+			if ( ASSERTS ) assertRange();
+			return true;
+		}
+
+		public boolean remove( final Object o ) {
+			return rem( KEY_OBJ2TYPE( o ) );
+		}
+
+		public boolean addAll( final long index, final COLLECTION c ) {
+			ensureIndex( index );
+			to += c.size();
+			if ( ASSERTS ) {
+				boolean retVal = l.addAll( from + index, c );
+				assertRange();
+				return retVal;
+			}
+			return l.addAll( from + index, c );
+		}
+
+		public boolean addAll( final long index, final LIST l ) {
+			ensureIndex( index );
+			to += l.size();
+			if ( ASSERTS ) {
+				boolean retVal = this.l.addAll( from + index, l );
+				assertRange();
+				return retVal;
+			}
+			return this.l.addAll( from + index, l );
+		}
+
+#else
+		@SuppressWarnings("unchecked")
+		public boolean remove( final Object o ) {
+			long index = indexOf( o );
+			if ( index == -1 ) return false;
+			REMOVE_KEY( index );
+			return true;
+		}
+#endif
+
+	}
+
+}

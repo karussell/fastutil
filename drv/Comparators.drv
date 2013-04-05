@@ -1,0 +1,70 @@
+/*		 
+ * Copyright (C) 2003-2013 Paolo Boldi and Sebastiano Vigna 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. 
+ */
+
+
+package PACKAGE;
+
+#if #keys(reference)
+import java.util.Comparator;
+#endif
+
+/** A class providing static methods and objects that do useful things with comparators.
+ */
+
+public class COMPARATORS {
+
+	private COMPARATORS() {}
+
+	/** A type-specific comparator mimicking the natural order. */
+
+	@SuppressWarnings({"unchecked","rawtypes"})
+	public static final KEY_COMPARATOR NATURAL_COMPARATOR = new KEY_ABSTRACT_COMPARATOR() {
+			public final int compare( final KEY_TYPE a, final KEY_TYPE b ) {
+#if #keys(primitive)
+				return KEY_CMP( a, b );
+#else
+				return ((Comparable)a).compareTo(b);
+#endif
+			}
+		};
+
+	/** A type-specific comparator mimicking the opposite of the natural order. */
+
+	@SuppressWarnings({"unchecked","rawtypes"})
+	public static final KEY_COMPARATOR OPPOSITE_COMPARATOR = new KEY_ABSTRACT_COMPARATOR() {
+			public final int compare( final KEY_TYPE a, final KEY_TYPE b ) {
+#if #keys(primitive)
+				return - KEY_CMP( a, b );
+#else
+				return ((Comparable)b).compareTo(a);
+#endif
+			}
+		};
+
+	/** Returns a comparator representing the opposite order of the given comparator. 
+	 *
+	 * @param c a comparator.
+	 * @return a comparator representing the opposite order of <code>c</code>.
+	 */
+	public static KEY_GENERIC KEY_COMPARATOR KEY_GENERIC oppositeComparator( final KEY_COMPARATOR KEY_GENERIC c ) {
+		return new KEY_ABSTRACT_COMPARATOR KEY_GENERIC() {
+				private final KEY_COMPARATOR KEY_GENERIC comparator = c;
+				public final int compare( final KEY_GENERIC_TYPE a, final KEY_GENERIC_TYPE b ) {
+					return - comparator.compare( a, b );
+				}
+			};
+	}
+}

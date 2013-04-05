@@ -1,0 +1,801 @@
+6.5.4
+
+- Further fixes related to NaNs in sorting.
+
+- Fixed very old bug in FastByteArrayOutputStream.write(int).
+  Thanks to Massimo Santini for reporting this bug.
+
+- We now use Arrays.MAX_ARRAY_SIZE, which is equal to Integer.MAX_VALUE
+  minus 8, to bound all array allocations. Previously, it might happen
+  that grow() and other array-related functions could try to allocate an
+  array of size Integer.MAX_VALUE, which is technically correct from the
+  JLS, but will not work on most JVMs. The maximum length we use now is
+  the same value as that used by java.util.ArrayList. Thanks to William
+  Harvey for suggesting this change.
+
+6.5.3
+
+- Corrected erroneous introduction of compare() methods on integral
+  classes (they appeared in Java 7).
+
+6.5.2
+
+- A few changes were necessary to make fastutil behave as Java on NaNs
+  when sorting. Double.compareTo() and Float.compareTo() treat Double.NaN
+  as greater than Double.POSITIVE_INFINITY, and fastutil was not doing it.
+  As part of the change, now all comparisons between primitive types are
+  performed using the compare() method of the wrapper class
+  (microbenchmarks confirmed that there is no speed penalty for that,
+  probably due to inlining or even intrinsification). Thanks to Adam Klein
+  for reporting this bug.
+
+- All quickSort() implementations that do not involve a comparator are now
+  deprecated, as there are equivalent/better versions in java.util.Arrays.
+
+6.5.0 -> 6.5.1
+
+- Now FastBuffered{Input/Output}Stream has a constructor with an
+  explicitly given buffer.
+
+- Abandoned golden-ratio based expansion of arrays and lists in favour of
+  a (more standard) doubling approach.
+
+- Array-based FIFO queues now reduce their capacity automatically by
+  halving when the size becomes one fourth of the length.
+
+- The add() method for open hash maps has been deprecated and replaced by
+  addTo(), as the name choice proved to be a recipe for disaster.
+
+- New InspectableFileCachedInputStream for caching easily large byte
+  streams partially on file and partially in memory.
+
+- The front() method for semi-indirect heaps took no comparator, but
+  was used in queues in which you could support a comparator. There
+  is now a further version accepting a comparator.
+
+- Serial Version UIDs are now private.
+
+6.4.6 -> 6.5.0
+
+- Fixed type of array hash strategies.
+
+- Fixed use of equals() instead of compareTo() in
+  SemiIndirectHeaps.front(). Thanks to Matthew Hatem for reporting this
+  bug.
+
+- Now we generate custom hash maps for primite types, too (as we were
+  already doing for sets).
+
+6.4.5 -> 6.4.6
+
+- In array-based priority queues changed() would not invalidate
+  the cached index of the smallest element.
+
+6.4.4 -> 6.4.5
+
+- In some very rare circumstances, enumeration of hash sets or maps
+  combined with massive element removal (using the iterator remove()
+  method) could have led to inconsistent enumeration (duplicates and
+  missing elements). Thanks to Hamish Morgan for reporting this bug.
+
+6.4.3 -> 6.4.4
+
+- Array-based maps were not implementing correctly entrySet().contains(),
+  and as a consequence equals() between such maps was broken. Thanks to
+  Benson Margulies for reporting this bug.
+
+6.4.2 -> 6.4.3
+
+- Now array-based priority queue cache their first element. Moreover,
+  they implement the correct type-specific interface.
+
+6.4.1 -> 6.4.2
+
+- Now we have indirect lexicographical radix sort on pairs of arrays,
+  mainly used to compute quickly Kendall's tau.
+
+- New reverse method for arrays (useful for radix descending sorts).
+
+- Radix sort (one or two arrays) for big arrays.
+
+- Now radix sort uses correctly (minimally) sized support arrays when
+  sorting subarrays.
+
+6.4 -> 6.4.1
+
+- Now we have a separate directory, settable in the makefile, to generate
+  sources. This makes Maven integration easier.
+
+- The store methods in TextIO for big arrays were broken.
+
+- Now big-array lists implement the Stack interface.
+
+- Fixed subtle bug in rehash() methods of big hash sets.
+
+6.3 -> 6.4
+
+- WARNING: Indirect queues must obviously have a way to determine whether
+  an index is in the queue. It was an oversight in the interface design
+  that a contains() method was not present. We wook the risk of adding it
+  now. At the same time, we modified remove() so that now returns a
+  boolean specifying whether the index to be removed was actually in the
+  queue, as this is more in line with the Java Collections Framework.
+
+- Removed unused double-priority queue related classes.
+
+- Now array-based sets and maps have a constructor based on
+  java.util.Collection and java.util.Map (as for the other
+  kind of sets and maps).
+
+- New doubly linked implementation for linked hash maps and sets. It uses
+  twice the space for pointers, but mixes well with linear probing, so we
+  have again constant-time true deletions. Moreover, iterators can be
+  started from any key in constant time (albeit the first access to the
+  index of the list iterator will require a linear scan, unless the
+  iterator started from the first or the last key). Additional methods
+  such as getAndMoveToFirst() make the creation of LRU caches very easy.
+  Thanks to Brien Colwell for donating the code.
+
+- Now object-based array FIFO queues provide deque methods. Moreover,
+  they clean up the backing array after returning an object or when
+  performing a clear().
+
+- New get() method in set implementations makes it possible to recover
+  the actual object int the collection that is equal to the query key.
+
+- A number of bugs were found and fixed by Christian Falz (thanks!). In
+  all binary search code the "to" parameter was *inclusive*, but the
+  documentation said *exclusive*, with obvious problems. Hash map
+  iterators could return under some very subtle and almost irreproducible
+  circumstances a previously deleted slot. Deleted hash map entries would
+  return spurious null values.
+
+6.2.2 -> 6.3
+
+- We now have radix sort. It's much faster than quicksort, but it can
+  only sort keys in their natural order. There are multiple-array
+  and indirect (and possibly stable) versions available.
+
+- There are now custom hash sets also for type-specific keys. This makes
+  it possible to use hash sets to index data indirectly (e.g., using
+  integer or long just as indices).
+
+- Shuffling static methods for all kinds of (big) list and arrays.
+
+6.2.1 -> 6.2.2
+
+- A new add() method makes the usage of maps as counters easier
+  and faster.
+
+6.2.0 -> 6.2.1
+
+- A very stupid bug was causing twice the rehashing that was 
+  necessary. Now insertions in hash-based classes are significantly faster.
+
+6.1.0 -> 6.2.0
+
+- A better structure of the scan loop for hash tables borrowed
+  from HPPC (http://labs.carrotsearch.com/hppc.html) gives some
+  speed improvement to hash-based classes.
+
+6.0.0 -> 6.1.0
+
+- Hash-based classes have been rewritten using linear probing and
+  a good hash (MurmurHash3). The old classes can be still generated
+  using the target oldsources.
+
+- Bizarre queues (double- and sesqui-indirect) have been removed
+  from the standard jar, but they can be still generated using the
+  target oldsources.
+
+5.1.5 -> 6.0.0
+
+- WARNING: the jar file is now fastutil.jar (not fastutil5.jar), again.
+
+- WARNING: now fastutil requires Java 6+.
+
+- fastutil is now released under the Apache License 2.0.
+
+- New framework for big arrays, represented as arrays-of-arrays.
+  BigArrays and the type-specific counterparts provide static
+  methods of all kinds.
+
+- New Size64 interface for classes implementing big collections.
+
+- New framework for big lists--lists with longs as indices. The only
+  present implementation uses big arrays, but, for instance,
+  Sux4J's succinct lists will be retrofitted to LongBigList
+  (presently they implement LongBigList from dsiutils, which will
+  be deprecated).
+
+- List.iterator() now returns a ListIterator. There is no real reason
+  not to do this, and the API change is handled from an implementation
+  viewpoint in AbstractList, so nodoby should really notice.
+
+- New Collections.asCollection(Iterable) method to expose iterables as
+  collections (missing methods are computed using the iterator). This was
+  also the occasion to streamline type-specific abstract collections,
+  which now inherit from java.util.AbstractCollection, so we support
+  contains, clear, etc. methods as long as there is an iterator.
+
+- Fixed bugged array-based constructors of ArrayMap and ArraySet.
+
+- Fixed bugged put/remove methods in abstract functions. Thanks to
+  Katja Filippova for reporting this bug.
+
+- New front-coded lists use big arrays, so they can store much more
+  (in fact, unlimited) data. Unfortunately, they are no longer
+  serialisation-compatible with previous versions.
+
+- New MeasurableStream interface that is implemented by
+  MeasurableInputStream and by a new, analogous MeasurableOutputStream.
+
+- Better FastBufferedOutputStream and FastByteArrayOutputStream that
+  are measurable and positionable.
+
+- Now all clone() methods override covariantly the defult return type
+  (Object).
+
+5.1.4 -> 5.1.5
+
+- ArraySet was implementing isEmpty() with inverted logic (thanks to
+  Marko Srdanovic for reporting this bug).
+
+- New constructor for FastMultiByteArrayInputStream: it takes a
+  MeasurableInputStream and uses length() to determine the number
+  of bytes to load into memory.
+
+5.1.3 -> 5.1.4
+
+- The implementation of RepositionableStream in FastByteArrayOutputStream
+  was fraught with a horrendous bug (thanks to Claudio Corsi for reporting),
+  in spite of extensive unit tests.
+
+5.1.2 -> 5.1.3
+
+- A bug existing since the first release was preventing tables
+  larger than 2^30 bits to work (the computation of the next bucket
+  to look at would cause an integer overflow).
+
+- FastByteArrayOutputStream now implements RepositionableStream.
+
+- Type-specific versions of Iterable.
+
+- Some methods (e.g., iterator() and values()) are now explicitly
+  re-strengthened wherever necessary to avoid complaints about
+  ambiguous method invocations by some compilers.
+
+- The introduction of functions added several bugs to the empty/singleton
+  map classes. Inheriting from the respective function counterparts left
+  several methods underspecified (equals(), etc.). This has been
+  (hopefully) fixed.
+
+5.1.1 -> 5.1.2
+
+- FastBufferedInputStream now supportw length() by FileChannel-fetching
+  on FileInputStream instances (it already used to support position()
+  by the same mechanism).
+
+5.1.0 -> 5.1.1
+
+- Byte-array MG4J I/O classes have been moved here.
+
+5.0.9 -> 5.1.0
+
+- Fixed documentation for custom/noncustom maps (it was exchanged).
+
+- New type-specify entrySet() methods that avoid complicated casting
+  to get a type-specific entryset. Moreover, now entrySet() can
+  return an object implementing Fast(Sorted)EntrySet to indicate
+  that a fastIterator() method is available. Fast iterators can
+  return always the same Entry object, suitably mutated. We thank
+  Daniel Ramage for suggesting this feature.
+
+- Several hundreds of new classes generated by the new Function interface,
+  which represent mappings for which the entry set is not enumerable
+  (e.g., hashes). Functions have their usual share of satellite objects
+  (wrappers, etc.). There are no implementations--the main purpose of
+  the new interfaces is to make Sux4J (http://sux.dsi.unimi.it/) 
+  more object-oriented.
+
+5.0.8 -> 5.0.9
+
+- Slightly reduced overhead for bound checks in heap-based queues.
+
+- BinIO was loading byte arrays one byte at a time. Now some conditionally
+  compiled code uses bulk-read methods instead. Moreover, horrible kluges
+  to work around Java bug #6478546 have been included.
+
+5.0.7 -> 5.0.8
+
+- Faster array maps and sets: System.arraycopy() is very slow on small arrays
+  (due to inherent costs of calling native code) and reflection-based array
+  creation is a disaster. Now we use object arrays and loops.
+
+- New clone() methods for array-based structures and custom serialisation.
+
+- FastBuffered*Stream has been simplified and streamlined. No more block alignment.
+
+5.0.6 -> 5.0.7
+
+- Better algorithm for front() in heaps.
+
+- New comprehensive collection of array-based maps and sets. The motivation
+  behind such structures is the need for quick, low-footprint data
+  structures for *very* small sets (say, less than 10 elements). For
+  instance, in MG4J we were using sparse reference-based hash tables, but
+  it turned out that System.identityHashCode() is *deadly* slow and
+  scanning linearly an array searching for the desired element is
+  significantly faster.
+
+5.0.5 -> 5.0.6
+
+- Due to erratic and unpredictable behaviour of InputStream.skip(), which
+  does not correspond to its specification and Sun refuses to fix (see bug
+  6222822; don't be fooled by the “closed, fixed” label),
+  FastBufferedInputStream now peeks at the underlying stream and if it is
+  System.in it uses repeated reads. Moreover, it will use alternatively
+  reads and skips to guarantee that the number of skipped bytes will be
+  smaller than requested only if end of file has been reached.
+
+- The insertion and key retrieval methods of hash-based structures are
+  now protected and final.
+
+- New front() method for indirect queues. It retrieves quickly the indices
+  associated to elements equal to the top.
+
+- First JUnit tests.
+
+5.0.4 -> 5.0.5
+
+- Fixed possible overflow in FastBufferedInputStream.available().
+
+- Indirect heaps have faster checks for elements belonging or not to the
+  queue. In particular, we just rely on array access for detecting indices
+  out of bounds. Profiling with LaMa4J showed that in some circumstances
+  checking explicitly the indices were within bounds was taking more time
+  that the actual heap inner workings.
+
+- Fixed obnoxious bug dating to the first fastutil implementation. The
+  macro KEY_EQUALS_HASH(x,h,y), which checks for equality between x and y
+  given that the hash of x is h, was evaluating hashCode() on y without
+  guarantee that y was non-null. As a result, adding a null to a mapped
+  followed by the insertion of an element with hash code 0 would have
+  thrown a NullPointerException. The bug went unobserved for years because
+  no one use nulls as keys, and was actually detected by a bug in BUbiNG's
+  code (which was in turn mistakenly inserting nulls in a set).
+
+5.0.3 -> 5.0.4
+
+- Fixed missing declaration of generic type for HASH_STRATEGY.
+
+- A new abstract class, MeasurableInputStream, is used for streams
+  whose length and current position are always known. This actually
+  was needed for BUbiNG development.
+
+- New readLine() family of method for reading "lines" directly
+  from a FastBufferedInputStream.
+
+- In FastBufferedInputStream, reset() has been deprecated in favour
+  of flush().
+
+- Array-based lists of objects now reallocate the backing array
+  using reflection *only* if they were created by wrapping. This
+  won't change the previous behaviour, but at the price of a boolean
+  per list we have unbelievably faster array reallocation.
+
+- New explicit fast load factors in Hash.
+
+5.0.2 -> 5.0.3
+
+- Bizarrily, java.util.List re-specifies iterator(), even if it extends
+  Collection. As a result, we need to re-strengthen it in type-specific lists.
+
+- Fixed new horrible bug introduced by adding Booleans to BinIO and TextIO.
+  Problem is, I didn't know #assert is cumulative.
+
+5.0.1 -> 5.0.2
+
+- Fixed bug in sorted maps key sets and values that would cause a
+  stack overflow when calling size() and a few other methods.
+
+- Fixed lack of booleans in BinIO and TextIO.
+
+- BinIO now checks for too large files.
+
+5.0 -> 5.0.1
+
+- In BinIO, it was assumed that .SIZE would give the size of
+  primitive types in *bytes*. Bad mistake.
+
+4.4.3 -> 5.0
+
+- Java 5 only!
+
+- Support for generics. This led to a number of backward-incompatible changes:
+    * toArray(Object[]) does not accept any longer null as an argument;
+    * singletons for empty collections (sets, lists, ecc.) are type-specific;
+    * iterators on sorted collections are bidirectional *by specification*;
+    * the new, covariantly stronger methods defined in all interfaces (e.g.,
+      iterator() returning a type-specific iterator) are now the default,
+      and in the abstract classes the old methods (e.g., objectIterator())
+      now just delegate to the standard method, which is the contrary
+      of what was happening before: you'll have to turn all methods
+      such as objectIterator() in iterator(), etc.
+    * all deprecated methods have been dropped.
+
+- Array growth functions now will return the correct empty array for
+  object arrays (it used to return ObjectArrays.EMPTY_ARRAY).
+
+- Strategies are generic and no longer required to accept REMOVED.
+
+- Stale references could hang around in the nodePath array for
+  Red-Black trees and map; this has been fixed.
+
+- The difference in semantics with the standard toArray(Object[])
+  specification, which has always been in place, is now exhaustively
+  explained.
+
+- Major code cleanup (mostly code deletion) due to passing fastutil
+  into Eclipse to check unused code, etc.
+
+4.4.2 -> 4.4.3
+
+- Important bug fix in FastBufferedInputStream.
+
+4.4.1 -> 4.4.2
+
+- New reset() method to invalidate the buffer of a FastBufferedInputStream,
+  making it possible to read safely files written by other processes
+  (given, of course, that you are synchronising the accesses).
+
+4.4.0 -> 4.4.1
+
+- New parallel-array constructor for all maps. Very useful for
+  static final map initialisation.
+
+- Following considerations in Jakarta Commons I/O, the standard
+  buffer size has be lowered to 8Ki.
+
+- Some arguments were declared as DataInputStream instead of
+  DataInput.
+
+- New methods for reading/writing objects from/to streams.
+
+4.3.2 -> 4.4
+
+- New static containers for reading and writing easily text and binary
+  data streams. They load/save arrays, iterators etc. to buffered readers
+  or streams.
+
+- Moved here fast input/output buffered classes from MG4J. This makes 
+  fastutil self-contained.
+
+- The trivial implementation of the type-specific iterator was missing
+  from AbstractList.drv (surprisingly, not from the subclass implementation!).
+
+- The sublist implementation in AbstractList.drv is now protected and static.
+  The attributes are protected, too.
+
+- Now we compare booleans (false<true). As a result, also lists of
+  booleans do get lexicographical comparability.
+
+- add(k) in AbstractList.drv now calls add(size(), k).
+
+- Fixed error messages for out-of-bound indices in lists.
+
+4.3.1 -> 4.3.2
+
+- Fixed small innocuous bug: a code fragment related to non-linked
+  hash table was generated for linked hash tables, too, do to a
+  case type in a preprocessor directive. The code fragment, however,
+  had no effect.
+
+- Fixed memory leak in OpenHashMap: the remove() method was not clearing
+  the key (whereas OpenHashSet was). 
+
+4.3 -> 4.3.1
+
+- New fully indirect heap-based double priority queues.
+
+- Fixed docs for queues: in 4.3, we were claiming that greater elements
+  are dequeued first, while the opposite happens.
+
+4.2 -> 4.3
+
+- New full-fledged set of unmodifiable structures *and* iterators.
+
+- Removed about a dozen spurious final method modifiers.
+
+- Made rehash() protected, so that everybody can play with different
+  rehashing strategies.
+
+- trim() in array lists wasn't doing the right thing, because trim(int)
+  wasn't doing it in the first place. Now if n is smaller than the size
+  of the list, we trim at the list size (previously we were doing nothing).
+
+- Analogously, trim() in hash-table-based structures was fixed so that
+  trimming a table below its size will result in rehashing to the minimum
+  possible size.
+
+4.1 -> 4.2
+
+- Improved array methods: now all methods on objects (e.g., grow()) return an
+  array of the same type of the array that was passed to them, similarly to
+  toArray() in collections.
+
+- Fixed missing macro substitution for empty iterator methods. In any
+  case, they were already deprecated.
+
+4.0 -> 4.1
+
+- New classes for custom hashing methods (mainly thought for
+  arrays). Correspondingly, methods for arrays have been implemented in
+  the static containers.
+
+- BasicEntry now throws an UnsupportedOperationException on calls to
+  setValue(). If you ever used that method, you got wierd results, as
+  it does not update the underlying map. The method is now implemented
+  correctly in open hash maps, in which previously did not correctly
+  update the underying map.
+
+- Reimplemented copy of an entire array using clone().
+
+- Fixed a bug in clear() for indirect heaps (the inversion array was not
+  being cleared).
+
+- Indirect priority queue interfaces now feature an optional allChanged()
+  method that can be used to force a complete heap rebuild. It is implemented by
+  all current array-based and head-based concrete classes.
+
+3.1 -> 4.0
+
+- IMPORTANT: The optimized methods that a type-specific must provide now
+  include an addElements() method that quickly adds an array of elements. As
+  usual, the method is fully implemented by the type-specific abstract lists.
+
+- IMPORTANT: The abstract generic version of get(), put() and remove() for maps
+  with non-object keys or values now always return null to denote a missing
+  key. They used to return an object-wrapped default return value.
+
+- Completely new and comprehensive implementation of priority queues, both
+  direct and indirect. Implementations are by heaps and by flat arrays. There
+  are also static containers with all relevant heap methods, for people
+  wanting to do their own thing.
+
+- New static containers for comparators.
+
+- All singletons, empty sets and snychronized wrappers are public so
+  you can inherit from them.
+
+- Abstract maps now provide keySet() and values() based on entrySet().
+
+- New abstract classes for sorted sets and maps with delegators to
+  type-specific methods.
+	
+- New public methods in Arrays and in type-specific Arrays classes for checking
+  ranges.
+
+- New static methods for type-specific arrays that allow to grow, enlarge
+  and trim them with ease.
+
+- Clarified abstract implementation of default return values, and implemented
+  clarified specification. Just a couple of method in hash maps were not
+  already compliant.
+
+- The pour() method now returns a list. The previous version was returning
+  a linked hash set, which was rather nonsensical anyway, since an iterator
+  build on the returned set could have been different from the original iterator.
+  You can always pour an iterator into a set by providing the set explicitly.
+
+- An exception-throwing implementation of some methods in AbstractSet
+  was missing. Same for AbstractCollection, AbstractMap and AbstractList.
+
+- New basic inner entry class for abstract maps, which makes it easier to write
+  entrySet() methods for classes that do not have their own entries.
+
+- Added missing get(Object) method in AbstractMap (just delegates to
+  the type-specific version).
+
+- For lazy people, now containsKey() and containsValue() in AbstractMap
+  are defined by looking into keySet() and values().
+
+- Fixed a few methods of EMPTY_LIST which were throwing exception
+  semantically (see the introduction).
+
+- The interval iterators are now list iterators, except for longs.
+
+- Fixed a bug in size() for array lists (reducing the size of an array
+  would lead to an exception).
+
+- Fixed double bug in hash tables: first of all, on very small sizes adding
+  growthFactor would have left the size unchanged, giving rise to infinite
+  loops. (Thanks to Heikki Uusitalo for reporting this bug.) Second, growthFactor
+  was not being used *at all* by hash maps.
+
+- Fixed entries emitted by singleton maps. Now they are type-specific.
+
+- Fixed a number of minor glitches in gencsource.sh, and added some comments.
+
+- HashCommon.removed has been renamed HashCommon.REMOVED.
+
+- Boolean objects are now generated using valueOf() instead of the constructor.
+
+- New type-specific wrappers for list iterators.
+
+3.0 -> 3.1
+
+- IMPORTANT: it.unimi.dsi.fastutil.Iterators methods have
+  been spread in type-specific static containers.
+
+- New Stack interface, implemented by type-specific lists.
+
+- New static container classes Collections, Sets, and Lists.
+  Presently they just provide empty containers.
+
+- New type-specific static contains (e.g., IntSets) providing
+  singletons and synchronized wrappers.
+
+- Entry sets now have entries that are equal() to entries
+  coming from corresponding maps in java.util.
+
+- Spelling everywhere changed to Pure American. "synchronized" in code and
+  "synchronise" in text side-by-side were looking really wierd...
+
+3.0 -> 3.0.1
+
+- New unwrap() methods for type-specific collections.
+
+- Fixed old-as-world-bug, apparently wide but that evidently no one ever
+  noticed: AbstractMap was not serialisable, and, as a result, the default
+  return value was not serialised  (I find sincerely counterintuitive that
+  making a class serialisable doesn't do the same for its supertypes). It
+  wasn't ever even *documented* as preserved, so probably everyone thought
+  this was my idea, too. Too bad this breaks once more serialisation
+  compatibility. Since I had to break some serialisation anyway, I decided
+  to eliminate the residual serialisation of p in hash table classes, too
+  (which breaks serialisation for all hash-based classes).
+
+2.60 -> 3.0
+
+- IMPORTANT: All classes have been repackaged following the type of
+  elements/keys. Sources will have to be retouched (just to change
+  the import clause) and recompiled.
+	
+- IMPORTANT: Because of an unavoidable name clash in the new type-specific list
+  interface, the method remove(int) of IntCollection has been renamed rem(int).
+  The only really unpleasant effect is that you must use rem(int) on variables of
+  type IntCollection that are not of type IntSet (as IntSet reinstates
+  remove(int) in its right place)--for instance, IntList.
+
+- Brand-new implementation of type-specific lists, with all the features you'd
+  expect and more.
+
+- Insertions for readObject() in hash tables are now handled in a special way
+  (20% faster).
+
+- Implemented linear-time tree reconstruction for readObject() (in practice, more
+  than twice faster).
+
+- Fixed a problem with serialisation of hash tables: the table would have
+  been reloaded with the same p, even if it was preposterous. We still
+  save p, however, to avoid breaking serialisation compatibility.
+
+- Fixed missing implementation of type-specific sets, which should
+  have extended type-specific collections, but they weren't.
+
+- The default return value is now protected.
+
+- New family of pour() methods that pour an iterator into a set.
+
+- New programmable growth factor for hash-table-based classes.
+
+- Eliminated a few useless method calls in tree map.
+
+- Wide range of complex assertions, which are compiled in or out using the
+  "private static final boolean" idiom.
+
+- For references we now use System.identityHashCode(); this shouldn't change
+  much, but it seems definitely more sensible.
+
+- Fixed major bug in subSet()/subMap(): creating a subMap of a tailMap (or
+  headMap) a right extreme (left, resp.) equal to 0 would have caused the
+  creation of a tailMap (or headMap, resp.), discarding the extreme. Very,
+  very unlikely, but it happened in a test.
+
+- Fixed small bug in standard remove() method of submaps, which would have
+  returned a default return value wrapped in a suitable object instead of
+  null on non-existing keys.
+
+2.52 -> 2.60
+
+- IMPORTANT: Major overhaul of iterators. Now iterators must be skippable,
+  so previous implementation of type-specific iterator interfaces will
+  not work. However, new abstract classes allow to build iterator with ease
+  by providing for free the skipping logic, and many useful static methods in
+  Iterators allow to generate type-specific iterators wrapping standard
+  iterators, arrays, etc.
+
+- Better strategy for clear() on hash tables: we don't do anything only
+  if all entries are free (which means that an empty table with deleted
+  entry will be cleared).
+
+2.51 -> 2.52
+
+- IMPORTANT: The package name has changed to it.unimi.dsi.fastutil to be
+  uniform with JPackage conventions. However, this means that you must manually
+  erase the old one and update your sources.
+
+- clear() doesn't do anything on empty hash tables.
+
+2.50 -> 2.51
+- New trim(int) method to reduce a hash table size avoiding to
+  make it too small.
+
+- serialVersionUID is now fixed, to avoid future incompatibilities.
+
+2.11 -> 2.50
+
+- IMPORTANT: The Collection interface now prescribes an iterator
+  method with a type-specific name (e.g., intIterator()) that
+  returns directly a type-specific iterator.
+
+- New Reference maps and sets that allow to store more quickly
+  canonised objects.
+
+- New linked maps mimicking java.util's, but with a boatload
+  of additional features.
+
+- Small bug fix: the get(Object) method would return null
+  instead of the default return value for maps with object
+  keys.
+
+- Major bug fix: iterating backwards on submaps was leading
+  to unpredictable results.
+
+- Major bug fix: cloning maps would have caused inconsistent behaviour.
+
+- Major code redistribution: now whenever possible wrappers 
+  belong to abstract superclasses.
+
+2.1 -> 2.11
+
+- Now we cache the hash of an object before entering
+  the hash table loop.
+
+2.0 -> 2.1
+
+- A simple optimisation in hash-table inner loops has given
+  quite a performance boost under certain conditions (we do
+  not compute the secondary hashing if it is not necessary). Inspired
+  by Gnu Trove.
+- The trim() method would have in fact trimmed nothing, just
+  rehashed the table.
+- The computed maxFill value was sligtly too small.
+- Also tree sets now have constructors from arrays.
+- More internal methods have been made final.
+
+1.3 -> 2.0
+
+- ALL MAPS AND SETS HAVE NEW NAMES DEPENDING ON THE IMPLEMENTATION.
+- Introducing new high-performance, low memory-footprint implementation of
+  SortedMap and SortedSet.
+- Two tree implementations are available: RB trees and
+  AVL trees. Both implementations are threaded. See the README.
+- Fixed a bug in hashCode() and contains() for HashMap.drv (it was
+  considering keys only!).
+- Fixed a bug in contains() for entrySet() in all maps (it was using
+  VALUE_EQUAL to test equality for values given as objects).
+- I realised that a default return value can be useful also for maps and sets
+  returning objects, so now you have it. It is even independent for submaps and
+  subsets.
+- Classes are no longer final. The performance gain is around 1%, and
+  the decrease in usefulness is orders of magnitudes greater.
+- We now check equality using first hashCode() and then equals().
+- The tests for speed now warm up the trees by doing repeated insertions
+  and deletions, so that the benefits of a better balancing criterion
+  are more evident.
+- The regression tests are much more stringent.
+- Fixed hashCode() for hash maps (wasn't conforming to the Map interface
+  specification).
+- Implemented linear cloning for tree classes.

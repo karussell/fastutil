@@ -1,0 +1,227 @@
+<project name="fastutil" default="jar" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+
+	<property file="build.properties"/>
+
+	<!-- ************************************** WARNING: MAVEN SH*T ************************************** -->
+
+	<!-- define Maven coordinates -->
+	<property name="groupId" value="it.unimi.dsi" />
+	<property name="artifactId" value="fastutil" />
+	<property name="version" value="${version}" />
+
+        <!-- define artifacts' name, which follows the convention of Maven -->
+	<property name="maven-jar" value="${dist}/lib/${artifactId}-${version}.jar" />
+	<property name="maven-javadoc-jar" value="${dist}/lib/${artifactId}-${version}-javadoc.jar" />
+	<property name="maven-sources-jar" value="${dist}/lib/${artifactId}-${version}-sources.jar" />
+
+        <!-- defined maven snapshots and staging repository id and url -->
+	<property name="maven-snapshots-repository-id" value="sonatype-nexus-snapshots" />
+	<property name="maven-snapshots-repository-url" value="https://oss.sonatype.org/content/repositories/snapshots/" />
+	<property name="maven-staging-repository-id" value="sonatype-nexus-staging" />
+	<property name="maven-staging-repository-url" value="https://oss.sonatype.org/service/local/staging/deploy/maven2/" />
+
+	<target name="dist" depends="compile,javadoc" description="generate the distribution">
+
+		<!-- build the main artifact -->
+		<jar jarfile="${maven-jar}" basedir="${build}" />
+
+		<!-- build the javadoc artifact (from symbolic link created in init) -->
+		<jar jarfile="${maven-javadoc-jar}">
+			<fileset dir="${dist}/javadoc" />
+		</jar>
+
+		<!-- build the sources artifact -->
+		<jar jarfile="${maven-sources-jar}">
+			<fileset dir="." includes="README,CHANGES,LICENSE-2.0,build.xml,build.properties,makefile,{drv}/*.drv,gencsource.sh,${src}/it/unimi/dsi/fastutil/**/*.java,${src}/it/unimi/dsi/fastutil/**/*.html,${test}/**/*.java"/>
+		</jar>
+	</target>
+
+	<target name="deploy" depends="dist" description="deploy snapshot version to Maven snapshot repository">
+		<artifact:mvn>
+			<arg value="org.apache.maven.plugins:maven-deploy-plugin:2.6:deploy-file" />
+			<arg value="-Durl=${maven-snapshots-repository-url}" />
+			<arg value="-DrepositoryId=${maven-snapshots-repository-id}" />
+			<arg value="-DpomFile=pom.xml" />
+			<arg value="-Dfile=${maven-jar}" />
+		</artifact:mvn>
+	</target>
+
+	<target name="stage" depends="dist" description="deploy release version to Maven staging repository">
+		<!-- sign and deploy the main artifact -->
+		<artifact:mvn>
+			<arg value="org.apache.maven.plugins:maven-gpg-plugin:1.3:sign-and-deploy-file" />
+			<arg value="-Durl=${maven-staging-repository-url}" />
+			<arg value="-DrepositoryId=${maven-staging-repository-id}" />
+			<arg value="-DpomFile=pom.xml" />
+			<arg value="-Dfile=${maven-jar}" />
+                        <arg value="-Pgpg" />
+		</artifact:mvn>
+
+		<!-- sign and deploy the sources artifact -->
+		<artifact:mvn>
+			<arg value="org.apache.maven.plugins:maven-gpg-plugin:1.3:sign-and-deploy-file" />
+			<arg value="-Durl=${maven-staging-repository-url}" />
+			<arg value="-DrepositoryId=${maven-staging-repository-id}" />
+			<arg value="-DpomFile=pom.xml" />
+			<arg value="-Dfile=${maven-sources-jar}" />
+			<arg value="-Dclassifier=sources" />
+                        <arg value="-Pgpg" />
+		</artifact:mvn>
+
+		<!-- sign and deploy the javadoc artifact -->
+		<artifact:mvn>
+			<arg value="org.apache.maven.plugins:maven-gpg-plugin:1.3:sign-and-deploy-file" />
+			<arg value="-Durl=${maven-staging-repository-url}" />
+			<arg value="-DrepositoryId=${maven-staging-repository-id}" />
+			<arg value="-DpomFile=pom.xml" />
+			<arg value="-Dfile=${maven-javadoc-jar}" />
+			<arg value="-Dclassifier=javadoc" />
+                        <arg value="-Pgpg" />
+		</artifact:mvn>
+	</target>
+
+	<!-- ************************************** END OF MAVEN SH*T ************************************** -->
+
+	<condition property="j2se.apiurl" value="${local.j2se.apiurl}" else="${remote.j2se.apiurl}"><isset property="local"/></condition>
+
+	<property name="j2se.apiurl" value="http://java.sun.com/j2se/5.0/docs/api/"/>
+
+	<path id="emma.lib" >
+		<pathelement location="${jar.base}/emma.jar" />
+		<pathelement location="${jar.base}/emma_ant.jar" />
+	</path>
+
+	<taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+
+	<target name="init">
+		<mkdir dir="${build}"/>
+		<mkdir dir="${dist}/lib"/>
+		<symlink link="${dist}/javadoc" resource="../${docs}" overwrite="true"/>
+	</target>
+
+	<target name="compile" depends="init">
+		<javac srcdir="${src}" 
+			debug="on"
+			deprecation="on"
+			optimize="on"
+			destdir="${build}"
+			memoryInitialSize="800M"
+			memoryMaximumSize="800M"
+			fork="yes"
+			source="1.6"
+			target="1.6"
+		/>
+	</target>
+
+	<target name="compile-tests" depends="compile">
+		<javac srcdir="${test}" 
+			debug="on"
+			deprecation="on"
+			optimize="on"
+			destdir="${build}"
+			memoryInitialSize="800M"
+			memoryMaximumSize="800M"
+			fork="yes"
+			source="1.6"
+			target="1.6"
+		/>
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar jarfile="fastutil-${version}.jar">
+			<fileset dir="${build}" excludes="it/unimi/dsi/fastutil/*IndirectDoublePriorityQueue*"/>
+	 </jar>
+	</target>
+
+	<target name="jar-tests" depends="compile">
+		<jar jarfile="fastutil-${version}.jar">
+			<fileset dir="${build}" excludes="it/unimi/dsi/fastutil/*IndirectDoublePriorityQueue*"/>
+	 </jar>
+	</target>
+
+	<target name="jar-oldsources" depends="compile">
+		<jar jarfile="fastutil-${version}.jar">
+			<fileset dir="${build}"/>
+	 </jar>
+	</target>
+
+	<target name="javadoc">
+		<mkdir dir="${docs}"/>
+		<javadoc destdir="${docs}" 
+			 packagenames = "it.unimi.dsi.fastutil,it.unimi.dsi.fastutil.*"
+			 overview="${src}/overview.html"
+			 sourcepath="${src}" 
+			 public="on"
+			 source="${source}"
+			 windowtitle="fastutil ${version}"
+			 additionalparam="-breakiterator"
+			 maxmemory="800M"
+			 >
+	<link href="${j2se.apiurl}"/>
+		</javadoc>
+	</target>
+
+	<target name="junit" depends="instrument" description="Runs JUnit tests">
+
+		<junit printsummary="yes" fork="yes" haltonfailure="off"  haltonerror="off">
+			<classpath location="${instrumented}/classes"/>
+			<classpath location="${src}"/>
+			<classpath location="${jar.base}/emma.jar"/>
+			<jvmarg value="-Xmx1G" />
+			<jvmarg value="-Demma.coverage.out.file=${coverage}/coverage.emma" />
+			<jvmarg value="-Demma.coverage.out.merge=true" />
+
+			<formatter type="xml"/>
+			<formatter type="plain"/>
+
+			<batchtest fork="yes" todir="${reports}">
+				<fileset dir="${instrumented}/classes">
+					<include name="**/*Test.class"/>
+				</fileset>
+			</batchtest>
+		</junit>
+
+		<junitreport todir="reports">
+			<fileset dir="reports">
+				<include name="TEST-*.xml"/>
+			</fileset>
+			<report todir="reports/html"/>
+		</junitreport>
+
+		<emma>
+			<report sourcepath="${src}" >
+				<fileset file="${coverage}/*a"/>
+				<html outfile="coverage.html" />
+				<xml outfile="${coverage}/coverage.xml" />
+			</report>
+		</emma>
+	</target>
+
+	<target name="instrument" depends="compile" description="Generate instrumented classes">
+		<emma>
+			<instr mode="fullcopy"
+				 outdir="${instrumented}"
+				 merge="no"
+				 metadatafile="${coverage}/metadata.emma"
+				 instrpath="${build}"
+			>
+				<filter excludes="*Test*"/>
+			</instr>
+		</emma>
+	</target>
+
+
+	<!-- ************		CLEAN		********************* -->
+	<target name="clean">
+		<delete dir="${build}"/>
+		<delete dir="${dist}"/>
+		<delete dir="${reports}"/>
+		<delete dir="${coverage}"/>
+		<delete dir="${instrumented}"/>
+		<delete dir="${docs}"/>
+		<delete>
+			<fileset dir="." includes="fastutil-*.jar"/>
+		</delete>
+  </target>
+
+</project>

@@ -1,0 +1,81 @@
+/*		 
+ * Copyright (C) 2003-2013 Sebastiano Vigna 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. 
+ */
+
+
+package PACKAGE;
+
+/** A class providing static methods and objects that do useful things with type-specific priority queues.
+ *
+ * @see it.unimi.dsi.fastutil.PriorityQueue
+ */
+
+public class PRIORITY_QUEUES {
+
+	private PRIORITY_QUEUES() {}
+
+	/** A synchronized wrapper class for priority queues. */
+
+	public static class SynchronizedPriorityQueue KEY_GENERIC implements PRIORITY_QUEUE KEY_GENERIC {
+		final protected PRIORITY_QUEUE KEY_GENERIC q;
+		final protected Object sync;
+
+		protected SynchronizedPriorityQueue( final PRIORITY_QUEUE KEY_GENERIC q, final Object sync ) {
+			this.q = q;
+			this.sync = sync;
+		}
+
+		protected SynchronizedPriorityQueue( final PRIORITY_QUEUE KEY_GENERIC q ) {
+			this.q = q;
+			this.sync = this;
+		}
+
+		public void enqueue( KEY_GENERIC_TYPE x ) { synchronized( sync ) { q.enqueue( x ); } }
+		public KEY_GENERIC_TYPE DEQUEUE() { synchronized( sync ) { return q.DEQUEUE(); } }
+		public KEY_GENERIC_TYPE FIRST() { synchronized( sync ) { return q.FIRST(); } }
+		public KEY_GENERIC_TYPE LAST() { synchronized( sync ) { return q.LAST(); } }
+		public boolean isEmpty() { synchronized( sync ) { return q.isEmpty(); } }
+		public int size() { synchronized( sync ) { return q.size(); } }
+		public void clear() { synchronized( sync ) { q.clear(); } }
+		public void changed() { synchronized( sync ) { q.changed(); } }
+		public KEY_COMPARATOR KEY_SUPER_GENERIC comparator() { synchronized( sync ) { return q.comparator(); } }
+#if !#keyclass(Object)
+		public void enqueue( KEY_CLASS x ) { synchronized( sync ) { q.enqueue( x ); } }
+		public KEY_CLASS dequeue() { synchronized( sync ) { return q.dequeue(); } }
+		public KEY_CLASS first() { synchronized( sync ) { return q.first(); } }
+		public KEY_CLASS last() { synchronized( sync ) { return q.last(); } }
+
+#endif
+	}
+
+
+	/** Returns a synchronized type-specific priority queue backed by the specified type-specific priority queue.
+	 *
+	 * @param q the priority queue to be wrapped in a synchronized priority queue.
+	 * @return a synchronized view of the specified priority queue.
+	 */
+	public static KEY_GENERIC PRIORITY_QUEUE KEY_GENERIC synchronize( final PRIORITY_QUEUE KEY_GENERIC q ) {	return new SynchronizedPriorityQueue( q ); }
+
+	/** Returns a synchronized type-specific priority queue backed by the specified type-specific priority queue, using an assigned object to synchronize.
+	 *
+	 * @param q the priority queue to be wrapped in a synchronized priority queue.
+	 * @param sync an object that will be used to synchronize the access to the priority queue.
+	 * @return a synchronized view of the specified priority queue.
+	 */
+
+	public static KEY_GENERIC PRIORITY_QUEUE KEY_GENERIC synchronize( final PRIORITY_QUEUE KEY_GENERIC q, final Object sync ) { return new SynchronizedPriorityQueue( q, sync ); }
+
+
+}

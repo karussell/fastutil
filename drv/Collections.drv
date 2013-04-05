@@ -1,0 +1,265 @@
+/*		 
+ * Copyright (C) 2002-2013 Sebastiano Vigna 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. 
+ */
+
+
+package PACKAGE;
+
+import java.util.Collection;
+
+import it.unimi.dsi.fastutil.objects.ObjectArrays;
+
+
+/** A class providing static methods and objects that do useful things with type-specific collections.
+ *
+ * @see java.util.Collections
+ */
+
+public class COLLECTIONS {
+
+	private COLLECTIONS() {}
+
+	/** An immutable class representing an empty type-specific collection.
+	 *
+	 * <P>This class may be useful to implement your own in case you subclass
+	 * a type-specific collection.
+	 */
+
+	public abstract static class EmptyCollection KEY_GENERIC extends ABSTRACT_COLLECTION KEY_GENERIC {
+		
+		protected EmptyCollection() {}
+
+		public boolean add( KEY_GENERIC_TYPE k ) { throw new UnsupportedOperationException(); }
+
+		public boolean contains( KEY_TYPE k ) { return false; }
+           
+		public Object[] toArray() { return ObjectArrays.EMPTY_ARRAY; }
+
+#if #keys(primitive)
+		public KEY_TYPE[] TO_KEY_ARRAY( KEY_TYPE[] a ) { return a; }
+		public KEY_TYPE[] TO_KEY_ARRAY() { return ARRAYS.EMPTY_ARRAY; }
+
+		public boolean rem( KEY_TYPE k ) { throw new UnsupportedOperationException(); }
+		public boolean addAll( COLLECTION c ) { throw new UnsupportedOperationException(); }
+		public boolean removeAll( COLLECTION c ) { throw new UnsupportedOperationException(); }
+		public boolean retainAll( COLLECTION c ) { throw new UnsupportedOperationException(); }
+		public boolean containsAll( COLLECTION c ) { return c.isEmpty(); }
+#else
+		public boolean remove( final Object k ) { throw new UnsupportedOperationException(); }
+		public <T> T[] toArray( T[] a ) { return a; }
+#endif
+
+		@SuppressWarnings("unchecked")
+		public KEY_BIDI_ITERATOR KEY_GENERIC iterator() { return ITERATORS.EMPTY_ITERATOR; }
+
+		public int size() { return 0; }
+		public void clear() {}
+
+		public int hashCode() { return 0; }
+		public boolean equals( Object o ) { 
+			if ( o == this ) return true;
+			if ( ! ( o instanceof Collection ) ) return false;
+			return ((Collection<?>)o).isEmpty();
+		}
+	}
+
+
+	/** A synchronized wrapper class for collections. */
+
+	public static class SynchronizedCollection KEY_GENERIC implements COLLECTION KEY_GENERIC, java.io.Serializable {
+
+		private static final long serialVersionUID = -7046029254386353129L;
+
+		protected final COLLECTION KEY_GENERIC collection;
+		protected final Object sync;
+
+		protected SynchronizedCollection( final COLLECTION KEY_GENERIC c, final Object sync ) {
+			if ( c == null ) throw new NullPointerException();
+			this.collection = c;
+			this.sync = sync;
+		}
+
+		protected SynchronizedCollection( final COLLECTION KEY_GENERIC c ) {
+			if ( c == null ) throw new NullPointerException();
+			this.collection = c;
+			this.sync = this;
+		}
+
+		public int size() { synchronized( sync ) { return collection.size(); } }
+		public boolean isEmpty() { synchronized( sync ) { return collection.isEmpty(); } }
+		public boolean contains( final KEY_TYPE o ) { synchronized( sync ) { return collection.contains( o ); } }
+
+		public KEY_TYPE[] TO_KEY_ARRAY() { synchronized( sync ) { return collection.TO_KEY_ARRAY(); } }
+
+#if #keys(primitive)
+		public Object[] toArray() { synchronized( sync ) { return collection.toArray(); } }
+		public KEY_TYPE[] TO_KEY_ARRAY( final KEY_TYPE[] a ) { synchronized( sync ) { return collection.TO_KEY_ARRAY( a ); } }
+		public KEY_TYPE[] toArray( final KEY_TYPE[] a ) { synchronized( sync ) { return collection.TO_KEY_ARRAY( a ); } }
+
+		public boolean addAll( final COLLECTION c ) { synchronized( sync ) { return collection.addAll( c ); } }
+		public boolean containsAll( final COLLECTION c ) { synchronized( sync ) { return collection.containsAll( c ); } }
+		public boolean removeAll( final COLLECTION c ) { synchronized( sync ) { return collection.removeAll( c ); } }
+		public boolean retainAll( final COLLECTION c ) { synchronized( sync ) { return collection.retainAll( c ); } }
+
+		public boolean add( final KEY_GENERIC_CLASS k ) { synchronized( sync ) { return collection.add( k ); } }
+		public boolean contains( final Object k ) { synchronized( sync ) { return collection.contains( k ); } }
+#endif
+
+		public <T> T[] toArray( final T[] a ) { synchronized( sync ) { return collection.toArray( a ); } }
+
+		public KEY_ITERATOR KEY_GENERIC iterator() { return collection.iterator(); }
+
+		@Deprecated
+		public KEY_ITERATOR KEY_GENERIC KEY_ITERATOR_METHOD() { return iterator(); }
+
+		public boolean add( final KEY_GENERIC_TYPE k ) { synchronized( sync ) { return collection.add( k ); } }
+		public boolean rem( final KEY_TYPE k ) { synchronized( sync ) { return collection.REMOVE( k ); } }
+		public boolean remove( final Object ok ) { synchronized( sync ) { return collection.remove( ok ); } }
+
+		public boolean addAll( final Collection<? extends KEY_GENERIC_CLASS> c ) { synchronized( sync ) { return collection.addAll( c ); } }
+		public boolean containsAll( final Collection<?> c ) { synchronized( sync ) { return collection.containsAll( c ); } }
+		public boolean removeAll( final Collection<?> c ) { synchronized( sync ) { return collection.removeAll( c ); } }
+		public boolean retainAll( final Collection<?> c ) { synchronized( sync ) { return collection.retainAll( c ); } }
+
+		public void clear() { synchronized( sync ) { collection.clear(); } }
+		public String toString() { synchronized( sync ) { return collection.toString(); } }
+	}
+
+
+	/** Returns a synchronized collection backed by the specified collection.
+	 *
+	 * @param c the collection to be wrapped in a synchronized collection.
+	 * @return a synchronized view of the specified collection.
+	 * @see java.util.Collections#synchronizedCollection(Collection)
+	 */
+	public static KEY_GENERIC COLLECTION KEY_GENERIC synchronize( final COLLECTION KEY_GENERIC c ) { return new SynchronizedCollection KEY_GENERIC( c ); }
+
+	/** Returns a synchronized collection backed by the specified collection, using an assigned object to synchronize.
+	 *
+	 * @param c the collection to be wrapped in a synchronized collection.
+	 * @param sync an object that will be used to synchronize the list access.
+	 * @return a synchronized view of the specified collection.
+	 * @see java.util.Collections#synchronizedCollection(Collection)
+	 */
+
+	public static KEY_GENERIC COLLECTION KEY_GENERIC synchronize( final COLLECTION KEY_GENERIC c, final Object sync ) { return new SynchronizedCollection KEY_GENERIC( c, sync ); }
+
+
+	/** An unmodifiable wrapper class for collections. */
+
+	public static class UnmodifiableCollection KEY_GENERIC implements COLLECTION KEY_GENERIC, java.io.Serializable {
+
+		private static final long serialVersionUID = -7046029254386353129L;
+
+		protected final COLLECTION KEY_GENERIC collection;
+
+		protected UnmodifiableCollection( final COLLECTION KEY_GENERIC c ) {
+			if ( c == null ) throw new NullPointerException();
+			this.collection = c;
+		}
+
+		public int size() { return collection.size(); }
+		public boolean isEmpty() { return collection.isEmpty(); }
+		public boolean contains( final KEY_TYPE o ) { return collection.contains( o ); }
+
+		public KEY_ITERATOR KEY_GENERIC iterator() { return ITERATORS.unmodifiable( collection.iterator() ); }
+
+		@Deprecated
+		public KEY_ITERATOR KEY_GENERIC KEY_ITERATOR_METHOD() { return iterator(); }
+
+		public boolean add( final KEY_GENERIC_TYPE k ) { throw new UnsupportedOperationException(); }
+		public boolean remove( final Object ok ) { throw new UnsupportedOperationException(); }
+
+		public boolean addAll( final Collection<? extends KEY_GENERIC_CLASS> c ) { throw new UnsupportedOperationException(); }
+		public boolean containsAll( final Collection<?> c ) { return collection.containsAll( c ); }
+		public boolean removeAll( final Collection<?> c ) { throw new UnsupportedOperationException(); }
+		public boolean retainAll( final Collection<?> c ) { throw new UnsupportedOperationException(); }
+
+		public void clear() { throw new UnsupportedOperationException(); }
+		public String toString() { return collection.toString(); }
+
+		public <T> T[] toArray( final T[] a ) { return collection.toArray( a ); }
+
+		public Object[] toArray() { return collection.toArray(); }
+
+#if #keys(primitive)
+		public KEY_TYPE[] TO_KEY_ARRAY() { return collection.TO_KEY_ARRAY(); }
+		public KEY_TYPE[] TO_KEY_ARRAY( final KEY_TYPE[] a ) { return collection.TO_KEY_ARRAY( a ); }
+		public KEY_TYPE[] toArray( final KEY_TYPE[] a ) { return collection.toArray( a ); }
+		public boolean rem( final KEY_TYPE k ) { throw new UnsupportedOperationException(); }
+
+		public boolean addAll( final COLLECTION c ) { throw new UnsupportedOperationException(); }
+		public boolean containsAll( final COLLECTION c ) { return collection.containsAll( c ); }
+		public boolean removeAll( final COLLECTION c ) { throw new UnsupportedOperationException(); }
+		public boolean retainAll( final COLLECTION c ) { throw new UnsupportedOperationException(); }
+
+		public boolean add( final KEY_GENERIC_CLASS k ) { throw new UnsupportedOperationException(); }
+		public boolean contains( final Object k ) { return collection.contains( k ); }
+#endif
+	}
+
+
+	/** Returns an unmodifiable collection backed by the specified collection.
+	 *
+	 * @param c the collection to be wrapped in an unmodifiable collection.
+	 * @return an unmodifiable view of the specified collection.
+	 * @see java.util.Collections#unmodifiableCollection(Collection)
+	 */
+	public static KEY_GENERIC COLLECTION KEY_GENERIC unmodifiable( final COLLECTION KEY_GENERIC c ) { return new UnmodifiableCollection KEY_GENERIC( c ); }
+
+	/** A collection wrapper class for iterables. */
+
+	public static class IterableCollection KEY_GENERIC extends ABSTRACT_COLLECTION KEY_GENERIC implements java.io.Serializable {
+
+		private static final long serialVersionUID = -7046029254386353129L;
+
+		protected final KEY_ITERABLE KEY_GENERIC iterable;
+
+		protected IterableCollection( final KEY_ITERABLE KEY_GENERIC iterable ) {
+			if ( iterable == null ) throw new NullPointerException();
+			this.iterable = iterable;
+		}
+
+		public int size() { 
+			int c = 0;
+			final KEY_ITERATOR KEY_GENERIC iterator = iterator();
+			while( iterator.hasNext() ) {
+				iterator.next();
+				c++;
+			}
+			
+			return c;
+		}
+		
+		public boolean isEmpty() { return iterable.iterator().hasNext(); }
+		public KEY_ITERATOR KEY_GENERIC iterator() { return iterable.iterator(); }
+
+		@Deprecated
+		public KEY_ITERATOR KEY_GENERIC KEY_ITERATOR_METHOD() { return iterator(); }
+	}
+
+
+	/** Returns an unmodifiable collection backed by the specified iterable.
+	 *
+	 * @param iterable the iterable object to be wrapped in an unmodifiable collection.
+	 * @return an unmodifiable collection view of the specified iterable.
+	 */
+	@SuppressWarnings("unchecked")
+	public static KEY_GENERIC COLLECTION KEY_GENERIC asCollection( final KEY_ITERABLE KEY_GENERIC iterable ) { 
+		if ( iterable instanceof COLLECTION ) return (COLLECTION KEY_GENERIC)iterable;
+		return new IterableCollection KEY_GENERIC( iterable );
+	}
+
+}

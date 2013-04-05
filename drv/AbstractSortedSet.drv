@@ -1,0 +1,61 @@
+/*		 
+ * Copyright (C) 2003-2013 Sebastiano Vigna 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. 
+ */
+
+
+package PACKAGE;
+
+/** An abstract class providing basic methods for sorted sets implementing a type-specific interface. */
+
+public abstract class ABSTRACT_SORTED_SET KEY_GENERIC extends ABSTRACT_SET KEY_GENERIC implements SORTED_SET KEY_GENERIC {
+
+	protected ABSTRACT_SORTED_SET() {}
+
+#if #keys(primitive)
+	/** Delegates to the corresponding type-specific method. */
+	public SORTED_SET KEY_GENERIC headSet( final KEY_GENERIC_CLASS to  ) {
+		return headSet( to.KEY_VALUE() );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public SORTED_SET KEY_GENERIC tailSet( final KEY_GENERIC_CLASS from ) {
+		return tailSet( from.KEY_VALUE() );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public SORTED_SET KEY_GENERIC subSet( final KEY_GENERIC_CLASS from, final KEY_GENERIC_CLASS to ) {
+		return subSet( from.KEY_VALUE(), to.KEY_VALUE() );
+	}
+
+	/** Delegates to the corresponding type-specific method. */
+	public KEY_GENERIC_CLASS first() {
+		return KEY2OBJ( FIRST() );
+	}
+	 
+	/** Delegates to the corresponding type-specific method. */
+	public KEY_GENERIC_CLASS last() {
+		return KEY2OBJ( LAST() );
+	}
+#endif
+
+	/** Delegates to the new covariantly stronger generic method. */
+	
+	@Deprecated
+	public KEY_BIDI_ITERATOR KEY_GENERIC KEY_ITERATOR_METHOD() {
+		return iterator();
+	}
+
+	public abstract KEY_BIDI_ITERATOR KEY_GENERIC iterator();
+}

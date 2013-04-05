@@ -1,0 +1,42 @@
+/*		 
+ * Copyright (C) 2002-2013 Sebastiano Vigna 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. 
+ */
+
+
+package PACKAGE;
+
+import it.unimi.dsi.fastutil.AbstractPriorityQueue;
+
+/**  An abstract class providing basic methods for priority queues implementing a type-specific interface.
+ *
+ */
+
+public abstract class ABSTRACT_PRIORITY_QUEUE KEY_GENERIC extends AbstractPriorityQueue<KEY_GENERIC_CLASS> implements PRIORITY_QUEUE KEY_GENERIC  {
+
+	/** Delegates to the corresponding type-specific method. */
+	public void enqueue( final KEY_GENERIC_CLASS x ) { enqueue( x.KEY_VALUE() ); }
+
+	/** Delegates to the corresponding type-specific method. */
+	public KEY_GENERIC_CLASS dequeue() { return KEY2OBJ( DEQUEUE() ); }
+
+	/** Delegates to the corresponding type-specific method. */
+	public KEY_GENERIC_CLASS first() { return KEY2OBJ( FIRST() ); }
+
+	/** Delegates to the corresponding type-specific method. */
+	public KEY_GENERIC_CLASS last() { return KEY2OBJ( LAST() ); }
+
+	/** Throws an {@link UnsupportedOperationException}. */
+	public KEY_TYPE LAST() { throw new UnsupportedOperationException(); }
+}

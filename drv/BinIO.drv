@@ -1,0 +1,166 @@
+/*		 
+ * Copyright (C) 2005-2013 Sebastiano Vigna 
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. 
+ */
+
+
+package it.unimi.dsi.fastutil.io;
+
+import static it.unimi.dsi.fastutil.BigArrays.SEGMENT_MASK;
+import static it.unimi.dsi.fastutil.BigArrays.start;
+import static it.unimi.dsi.fastutil.BigArrays.segment;
+import static it.unimi.dsi.fastutil.BigArrays.displacement;
+import java.io.*;
+import java.util.*;
+import it.unimi.dsi.fastutil.booleans.*;
+import it.unimi.dsi.fastutil.bytes.*;
+import it.unimi.dsi.fastutil.shorts.*;
+import it.unimi.dsi.fastutil.chars.*;
+import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.longs.*;
+import it.unimi.dsi.fastutil.floats.*;
+import it.unimi.dsi.fastutil.doubles.*;
+
+/** Provides static methods to perform easily binary I/O.
+ *
+ * <P>This class fills some gaps in the Java API. First of all, you have two
+ * buffered, easy-to-use methods to {@linkplain #storeObject(Object,CharSequence) store an object to a file}
+ * or {@linkplain #loadObject(CharSequence) load an object from a file},
+ * and two
+ * buffered, easy-to-use methods to {@linkplain #storeObject(Object,OutputStream) store an object to an output stream}
+ * or to {@linkplain #loadObject(InputStream) load an object from an input stream}.
+ *
+ * <p>Second, a natural operation on sequences of primitive elements is to load or
+ * store them in binary form using the {@link DataInput} conventions.  This
+ * method is much more flexible than storing arrays as objects, as it allows
+ * for partial load, partial store, and makes it easy to read the
+ * resulting files from other languages.
+ * 
+ * <P>For each primitive type, this class provides methods that read elements
+ * from a {@link DataInput} or from a filename into an array. Analogously, there are
+ * methods that store the content of an array (fragment) or the elements
+ * returned by an iterator to a {@link DataOutput} or to a given filename. Files
+ * are buffered using {@link FastBufferedInputStream} and {@link FastBufferedOutputStream}.
+ *
+ * <P>Since bytes can be read from or written to any stream, additional methods
+ * makes it possible to {@linkplain #loadBytes(InputStream,byte[]) load bytes from} and
+ * {@linkplain #storeBytes(byte[],OutputStream) store bytes to} a stream. Such methods
+ * use the bulk-read methods of {@link InputStream} and {@link OutputStream}, but they
+ * also include a workaround for <a href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6478546">bug #6478546</a>.
+ *
+ * <P>Finally, there are useful wrapper methods that {@linkplain #asIntIterator(CharSequence)
+ * exhibit a file as a type-specific iterator}.
+ * 
+ * @since 4.4
+ */
+
+public class BinIO {
+
+	private BinIO() {}
+
+	/** Stores an object in a file given by a {@link File} object.
+	 *
+	 * @param o an object.
+	 * @param file a file.
+	 * @see #loadObject(File)
+	 */
+	public static void storeObject( final Object o, final File file ) throws IOException {
+		final ObjectOutputStream oos = new ObjectOutputStream( new FastBufferedOutputStream( new FileOutputStream( file ) ) );
+		oos.writeObject( o );
+		oos.close();
+	}
+
+	/** Stores an object in a file given by a pathname.
+	 *
+	 * @param o an object.
+	 * @param filename a filename.
+	 * @see #loadObject(CharSequence)
+	 */
+
+	public static void storeObject( final Object o, final CharSequence filename ) throws IOException {
+		storeObject( o, new File( filename.toString() ) );
+	}
+
+	/** Loads an object from a file given by a {@link File} object.
+	 *
+	 * @param file a file.
+	 * @return the object stored under the given file.
+	 * @see #storeObject(Object, File)
+	 */
+	public static Object loadObject( final File file ) throws IOException, ClassNotFoundException {
+		final ObjectInputStream ois = new ObjectInputStream( new FastBufferedInputStream( new FileInputStream( file ) ) );
+		final Object result = ois.readObject();
+		ois.close();
+		return result;
+	}
+
+	/** Loads an object from a file given by a pathname.
+	 *
+	 * @param filename a filename.
+	 * @return the object stored under the given filename.
+	 * @see #storeObject(Object, CharSequence)
+	 */
+	public static Object loadObject( final CharSequence filename ) throws IOException, ClassNotFoundException {
+		return loadObject( new File( filename.toString() ) );
+	}
+
+	/** Stores an object in a given output stream.
+	 *
+	 * This methods buffers <code>s</code>, and flushes all wrappers after
+	 * calling <code>writeObject()</code>, but does not close <code>s</code>.
+	 *
+	 * @param o an object.
+	 * @param s an output stream.
+	 * @see #loadObject(InputStream)
+	 */
+
+	public static void storeObject( final Object o, final OutputStream s ) throws IOException {
+		@SuppressWarnings("resource")
+		final ObjectOutputStream oos = new ObjectOutputStream( new FastBufferedOutputStream( s ) );
+		oos.writeObject( o );
+		oos.flush();
+	}
+
+	/** Loads an object from a given input stream.
+	 *
+	 * <p><STRONG>Warning</STRONG>: this method buffers the input stream. As a consequence,
+	 * subsequent reads from the same stream may not give the desired results, as bytes
+	 * may have been read by the internal buffer, but not used by <code>readObject()</code>.
+	 * This is a feature, as this method is targeted at one-shot reading from streams,
+	 * e.g., reading exactly one object from {@link System#in}.
+	 *
+	 * @param s an input stream.
+	 * @return the object read from the given input stream.
+	 * @see #storeObject(Object, OutputStream)
+	 */
+	public static Object loadObject( final InputStream s ) throws IOException, ClassNotFoundException {
+		@SuppressWarnings("resource")
+		final ObjectInputStream ois = new ObjectInputStream( new FastBufferedInputStream( s ) );
+		final Object result = ois.readObject();
+		return result;
+	}
+
+
+
+
+#include "src/it/unimi/dsi/fastutil/io/BooleanBinIOFragment.h"
+#include "src/it/unimi/dsi/fastutil/io/ByteBinIOFragment.h"
+#include "src/it/unimi/dsi/fastutil/io/ShortBinIOFragment.h"
+#include "src/it/unimi/dsi/fastutil/io/CharBinIOFragment.h"
+#include "src/it/unimi/dsi/fastutil/io/IntBinIOFragment.h"
+#include "src/it/unimi/dsi/fastutil/io/LongBinIOFragment.h"
+#include "src/it/unimi/dsi/fastutil/io/FloatBinIOFragment.h"
+#include "src/it/unimi/dsi/fastutil/io/DoubleBinIOFragment.h"
+
+}
